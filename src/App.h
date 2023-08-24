@@ -8,6 +8,12 @@
 #include "common/MathHelp.h"
 #include "GLWindow.h"
 
+struct AppMenu
+{
+    const char* name;
+    SceneRef (*function)();
+};
+
 class App
 {
 public:
@@ -37,8 +43,8 @@ protected:
     virtual void showDockSpace();
     virtual void setupMouseEvent();
 
-    int winWidth = 1600;
-    int winHeight = 750;
+    int winWidth = 1350;
+    int winHeight = 700;
 
     ImFont* defaultFont{};
 

@@ -15,16 +15,15 @@
 
 #define ADD_SCENE_MENU(scene) {scene::ID, &scene::create}
 
-static struct{
-    const char* name;
-    SceneRef (*function)();
-} mainMenus[]{
-    {PictureScene::ID, &PictureScene::create},
+AppMenu mainMenus[]{
     ADD_SCENE_MENU(PictureScene),
 };
-static const int mainMenuCount = sizeof(mainMenus)/(sizeof (mainMenus[0]));
+int mainMenuCount = sizeof(mainMenus)/(sizeof (mainMenus[0]));
 
 #undef ADD_SCENE_MENU
+
+//extern AppMenu mainMenus[];
+//extern int mainMenuCount;
 
 void App::run()
 {
