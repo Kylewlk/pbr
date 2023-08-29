@@ -21,17 +21,15 @@ void main()
     vec3 V = normalize(cameraPos - WorldPos);
     vec3 H = normalize(L + V);
 
-    float ambient = 0.2;
+    float ambient = 0.1;
 
     float NdotL = dot(N, L);
-    float diffuse = (NdotL + 1) * 0.3;
+    float diffuse = (NdotL + 1) * 0.5;
 
     float NdotH = max(dot(N, H), 0);
-    float specular = pow(NdotH, 20) * 0.2;
+    float specular = pow(NdotH, 20) * 0.3;
 
     vec3 color = ((ambient + diffuse) * albedo + specular) * lightColor;
-
-    color = pow(min(vec3(1), color), vec3(1/2.2));
 
     fragColor = vec4(color, 1.0);
 }

@@ -37,6 +37,9 @@ RenderTargetRef RenderTarget::create(int width, int height, Format format, GLsiz
     case kTexColor:
         internalformat = GL_RGBA8;
         break;
+    case kTexColorFloat:
+        internalformat = GL_RGBA16F;
+        break;
     case kRenderDepth:
     case kTexDepth:
         internalformat = GL_DEPTH_COMPONENT32;
@@ -206,7 +209,7 @@ bool FrameBuffer::init(int width_, int height_, RenderTarget::Format colorFormat
     if (colorFormat != RenderTarget::kNone)
     {
         auto color = RenderTarget::create(width_, height_, colorFormat);
-        if (colorFormat == RenderTarget::kTexColor)
+        if (colorFormat == RenderTarget::kTexColor || colorFormat == RenderTarget::kTexColorFloat)
         {
             glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, color->handle, 0);
         }

@@ -20,6 +20,7 @@ public:
         kRenderDepth,
         kRenderDepthStencil,
         kTexColor,
+        kTexColorFloat,
         kTexDepth,
         kTexDepthStencil,
     };

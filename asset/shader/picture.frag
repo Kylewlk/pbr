@@ -10,6 +10,10 @@ out vec4 fragColor;
 void main()
 {
 //    	fragColor = vec4(0.0f, 1.0f, 1.0f, 1.0f);
-    fragColor = texture(tex, v_texCoord) * color;
-    fragColor.rgb *= color.a; //
+
+    vec4 c = texture(tex, v_texCoord);
+    c.rgb = pow(c.rgb, vec3(2.2)); // gamma, to linner
+
+    fragColor = c * color;
+    fragColor.rgb *= color.a; // premultiply alpha
 }

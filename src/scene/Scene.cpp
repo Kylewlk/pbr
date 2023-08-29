@@ -4,14 +4,17 @@
 
 #include "Scene.hpp"
 #include "common/FrameBuffer.h"
+#include "common/Shader.h"
+#include "common/Utils.h"
 
 Scene::Scene(const char* name, int width, int height) :name(name), width(width), height(height)
 {
     if (width > 0 && height > 0)
     {
-        this->fbResolved = FrameBuffer::create(width, height, RenderTarget::kTexColor, RenderTarget::kNone);
-        this->fbDraw = FrameBuffer::createMultisample(width, height, 4, true, true);
+        Scene::resize(width, height);
     }
+
+    this->toneMappingShader = Shader::createByPath("asset/shader/tone_mapping.vert", "asset/shader/tone_mapping.frag");
 
     this->mouseListener = MouseListener::create();
     this->mouseListener->onMouseEvent = [this](auto e){ this->onMouseEvent(e); };
@@ -27,7 +30,6 @@ TextureRef Scene::getColorTexture()
     return this->fbResolved->getColor();
 }
 
-
 void Scene::resize(int width_, int height_)
 {
     if (this->width == width_ && this->height == height_)
@@ -38,7 +40,7 @@ void Scene::resize(int width_, int height_)
     this->width = width_;
     this->height = height_;
     this->fbResolved = FrameBuffer::create(width, height, RenderTarget::kTexColor, RenderTarget::kNone);
-    this->fbDraw = FrameBuffer::createMultisample(width, height, 4, true, true);
+    this->fbDraw = FrameBuffer::create(width, height, RenderTarget::kTexColorFloat, RenderTarget::kTexDepth);
 }
 
 void Scene::draw()
@@ -61,7 +63,14 @@ void Scene::render()
 
     fbDraw->unbind();
 
-    fbDraw->blitFramebuffer(0, 0, width, height, this->fbResolved);
+//    fbDraw->blitFramebuffer(0, 0, width, height, this->fbResolved);
+
+    this->fbResolved->bind();
+    this->toneMappingShader->use();
+    this->toneMappingShader->bindTexture(0, this->fbDraw->getColor());
+    drawQuad();
+    this->fbResolved->unbind();
+
 
     this->drawProperty();
 }
