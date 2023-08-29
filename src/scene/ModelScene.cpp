@@ -2,59 +2,58 @@
 // Created by wlk12 on 2023/8/6.
 //
 
-#include "PictureScene.hpp"
+#include "ModelScene.hpp"
 #include "common/Texture.h"
 #include "common/Shader.h"
 #include "common/FrameBuffer.h"
 #include "common/EventSystem.h"
-#include "camera/Camera2D.h"
+#include "camera/Camera3D.h"
 #include "common/Logger.h"
+#include "common/RenderModel.h"
 
-PictureScene::PictureScene(int width, int height)
+ModelScene::ModelScene(int width, int height)
     : Scene(ID, width, height)
 {
-    this->texture = Texture::create("asset/Lenna.png");
-    this->shader = Shader::createByPath("asset/shader/picture.vert", "asset/shader/picture.frag");
-    this->camera = Camera2D::create();
+    this->shader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
+    this->camera = Camera3D::create();
+    this->camera->setLockUp(true);
 }
 
-SceneRef PictureScene::create()
+SceneRef ModelScene::create()
 {
-    struct enable_make_shared : public PictureScene
+    struct enable_make_shared : public ModelScene
     {
-        enable_make_shared() : PictureScene(0, 0) {}
+        enable_make_shared() : ModelScene(0, 0) {}
     };
     return std::make_shared<enable_make_shared>();
 }
 
-PictureSceneRef PictureScene::create(int width, int height)
-{
-    struct enable_make_shared : public PictureScene
-    {
-        enable_make_shared(int width, int height)
-            : PictureScene(width, height) {}
-    };
-
-    return std::make_shared<enable_make_shared>(width, height);
-}
-
-void PictureScene::draw()
+void ModelScene::draw()
 {
     this->camera->setViewSize((float)this->width, (float)this->height);
     this->camera->update();
 
-    auto mat = camera->getViewProj() * math::rotateDegree(rotation, math::Z_Axis);
-    mat = mat * math::scale({(float)texture->getWidth() * 0.5f, -(float)texture->getHeight() * 0.5f, 1.0f});
+    auto mat = math::scale({100, 100, 100});
+    auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
 
     shader->use();
-    glUniformMatrix4fv(1, 1, false, (float*)&mat);
-    glUniform4fv(2, 1, (float*)&color);
-    shader->bindTexture(3, this->texture);
-    drawQuad();
+    shader->setUniform("viewProj", camera->getViewProj());
+    shader->setUniform("model", mat);
+    shader->setUniform("normalMatrix", normalMat);
+
+    shader->setUniform("lightColor", math::Vec3{0.9, 0.9, 0.9});
+    shader->setUniform("lightDir", glm::normalize(math::Vec3{0.9, 0.9, 0.0}));
+    shader->setUniform("cameraPos", camera->getViewPosition());
+
+    shader->setUniform("albedo", math::Vec3{0.6, 1.0, 0.9});
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
+    renderSphere();
 }
 
 
-void PictureScene::drawProperty()
+void ModelScene::drawProperty()
 {
     if (!showPropertyWindow)
     {
@@ -79,7 +78,6 @@ void PictureScene::drawProperty()
         if (ImGui::Button("Save", {100.0f, 0}))
         {
             const auto& pixels = this->fbResolved->readPixel();
-            stbi_flip_vertically_on_write(true);
             stbi_write_png(".data/picture-scene.png", width, height, 4, pixels.data(), width * 4);
 
             auto workingDir = std::filesystem::current_path().u8string();
@@ -90,7 +88,7 @@ void PictureScene::drawProperty()
     ImGui::End();
 }
 
-void PictureScene::onMouseEvent(const MouseEvent* e)
+void ModelScene::onMouseEvent(const MouseEvent* e)
 {
     if (e->mouseButton == MouseEvent::kButtonLeft)
     {
@@ -104,18 +102,31 @@ void PictureScene::onMouseEvent(const MouseEvent* e)
         }
     }
 
+    if (e->mouseButton == MouseEvent::kButtonMiddle)
+    {
+        if (e->mouseEventType == MouseEvent::kMousePress)
+        {
+            this->holdMidButton = true;
+        }
+        else if (e->mouseEventType == MouseEvent::kMouseRelease)
+        {
+            this->holdMidButton = false;
+        }
+    }
+
     if (e->mouseEventType == MouseEvent::kMouseScroll)
     {
-        float scale = this->camera->getViewScale();
-        scale = (e->scrollY > 0) ? scale * 0.8f : scale * 1.25f;
-        this->camera->setViewScale(scale);
+        this->camera->forward((float)e->scrollY*20.0f);
     }
     else if (e->mouseEventType == MouseEvent::kMouseMove)
     {
+        auto delta = e->posDelta;
         if (this->holdLeftButton)
         {
-            auto delta = e->posDelta;
-            delta *= this->camera->getViewScale();
+            this->camera->round(delta.x, delta.y);
+        }
+        else if(this->holdMidButton)
+        {
             this->camera->move({delta.x, -delta.y, 0});
         }
     }

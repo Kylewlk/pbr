@@ -146,3 +146,154 @@ void Shader::bindTexture(GLint uniformLocation, const Texture* tex)
     glUniform1i(uniformLocation, this->texUnit);
     ++this->texUnit;
 }
+
+void Shader::setUniform(std::string_view name, bool value) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform1i(location, (GLint)value);
+}
+
+void Shader::setUniform(std::string_view name, int value) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform1i(location, (GLint)value);
+}
+
+void Shader::setUniform(std::string_view name, float f) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform1f(location, f);
+}
+
+void Shader::setUniform(std::string_view name, float f1, float f2) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform2f(location, f1, f2);
+}
+
+void Shader::setUniform(std::string_view name, float f1, float f2, float f3) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform3f(location, f1, f2, f3);
+}
+
+void Shader::setUniform(std::string_view name, float f1, float f2, float f3, float f4) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform4f(location, f1, f2, f3, f4);
+}
+
+void Shader::setUniform(std::string_view name, const math::Vec2& value) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform2f(location, value.x, value.y);
+}
+
+void Shader::setUniform(std::string_view name, const math::Vec3& value) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform3f(location, value.x, value.y, value.z);
+}
+
+void Shader::setUniform(const std::string_view name, const math::Vec4& value) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform4f(location, value.x, value.y, value.z, value.w);
+}
+
+void Shader::setUniform(std::string_view name, const math::Vec2* value, int count) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform2fv(location, count, reinterpret_cast<const GLfloat*>(value));
+}
+
+void Shader::setUniform(std::string_view name, const math::Vec3* value, int count) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform3fv(location, count, reinterpret_cast<const GLfloat*>(value));
+}
+
+void Shader::setUniform(std::string_view name, const math::Vec4* value, int count) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform4fv(location, count, reinterpret_cast<const GLfloat*>(value));
+}
+
+void Shader::setUniform(std::string_view name, const math::Mat2& value) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniformMatrix2fv(location, 1, GL_FALSE, &value[0][0]);
+}
+
+void Shader::setUniform(std::string_view name, const math::Mat3& value) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniformMatrix3fv(location, 1, GL_FALSE, &value[0][0]);
+}
+
+void Shader::setUniform(const std::string_view name, const math::Mat4& value) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
+}
+

@@ -12,11 +12,14 @@
 #include "backends/imgui_impl_opengl3.h"
 
 #include "scene/PictureScene.hpp"
+#include "scene/ModelScene.hpp"
 
 #define ADD_SCENE_MENU(scene) {scene::ID, &scene::create}
 
 AppMenu mainMenus[]{
     ADD_SCENE_MENU(PictureScene),
+    ADD_SCENE_MENU(ModelScene),
+
 };
 int mainMenuCount = sizeof(mainMenus)/(sizeof (mainMenus[0]));
 
@@ -207,8 +210,8 @@ void App::render()
         {
             auto drawList = ImGui::GetWindowDrawList();
             drawList->AddImage((ImTextureID*)(int64_t)colorTexture->getHandle(),
-                               {originPosition.x, originPosition.y},
-                               {originPosition.x + contentSize.x, originPosition.y + contentSize.y});
+                               {originPosition.x, originPosition.y + contentSize.y},
+                               {originPosition.x + contentSize.x, originPosition.y});
         }
 
         ImGui::End();

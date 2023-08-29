@@ -30,7 +30,8 @@ public:
     [[nodiscard]] bool getLockUp() const { return this->lockUp; }
 
     void updateViewSize(float width, float height);
-    void resetView(const math::Vec3& center = {0, 0, 0});
+    void resetView(const math::Vec3& center);
+    void resetView();
 
     void forward(float distance);
     void round(float xOffset, float yOffset); // 绕着target转动.

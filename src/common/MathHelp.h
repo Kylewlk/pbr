@@ -58,9 +58,24 @@ namespace math
         return glm::perspective<float>(fovy, aspect, zNear, zFar);
     }
 
+    inline Mat4 perspectiveYDown(float fovy, float aspect, float zNear, float zFar)
+    {
+        auto mat =  glm::perspective<float>(fovy, aspect, zNear, zFar);
+        mat[1][1] *= -1;
+        return mat;
+    }
+
     inline Mat4 orgho(float left, float right, float bottom, float top, float zNear, float zFar)
     {
         return glm::ortho<float>(left, right, bottom, top, zNear, zFar);
+    }
+
+    inline Mat4 orghoYDown(float left, float right, float bottom, float top, float zNear, float zFar)
+    {
+        auto mat =  glm::ortho<float>(left, right, bottom, top, zNear, zFar);
+        mat[1][1] *= -1;
+        mat[3][1] *= -1;
+        return mat;
     }
 
     inline Mat4 lookAt(const Vec3& eye, const Vec3& center, const Vec3& up) { return glm::lookAt(eye, center, up); }

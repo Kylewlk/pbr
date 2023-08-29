@@ -53,6 +53,14 @@ void Camera3D::resetView(const math::Vec3& center)
     this->setViewTarget(center);
 }
 
+void Camera3D::resetView()
+{
+    const float height = GLWindow::get()->getHeight();
+    const float defaultFov = 60.0f;
+    const float zPosition = height * 0.5f / std::tan(glm::radians(defaultFov) * 0.5f);
+    this->lookAt({0, 0, zPosition}, {0, 0, 0});
+}
+
 void Camera3D::round(float xOffset, float yOffset)
 {
     if ( abs(xOffset) > 0.1f || abs(yOffset) > 0.1f)
