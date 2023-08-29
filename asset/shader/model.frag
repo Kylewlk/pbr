@@ -31,5 +31,7 @@ void main()
 
     vec3 color = ((ambient + diffuse) * albedo + specular) * lightColor;
 
+    color = pow(min(vec3(1), color), vec3(1/2.2));
+
     fragColor = vec4(color, 1.0);
 }
