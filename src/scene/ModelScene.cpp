@@ -68,6 +68,18 @@ void ModelScene::draw()
     shader->setUniform("model", mat);
     shader->setUniform("normalMatrix", normalMat);
     renderSphere();
+
+    mat = math::translate({120, -220, 0}) * math::scale({100, 100, 100});
+    normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
+    shader->setUniform("model", mat);
+    shader->setUniform("normalMatrix", normalMat);
+    renderSphere();
+
+    mat = math::translate({-120, -220, 0}) * math::scale({100, 100, 100});
+    normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
+    shader->setUniform("model", mat);
+    shader->setUniform("normalMatrix", normalMat);
+    renderSphere();
 }
 
 
@@ -142,7 +154,7 @@ void ModelScene::onMouseEvent(const MouseEvent* e)
         auto delta = e->posDelta;
         if (this->holdLeftButton)
         {
-            this->camera->round(delta.x, delta.y);
+            this->camera->round(delta.x, -delta.y);
         }
         else if(this->holdMidButton)
         {
