@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(target_name ray-tracing)
+set(target_name pbr)
 project(${target_name})
 
 set(CMAKE_CXX_STANDARD 20)
@@ -13,7 +13,7 @@ file(GLOB_RECURSE src_code LIST_DIRECTORIES false
 add_executable(${target_name} ${src_code})
 
 add_subdirectory(libs)
-target_link_libraries(${target_name} ray-tracing-libs)
+target_link_libraries(${target_name} third_libs)
 
 target_include_directories(${target_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 

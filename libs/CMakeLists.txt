@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(target_name ray-tracing-libs)
+set(target_name third_libs)
 project(${target_name})
 
 add_library(${target_name} INTERFACE)
