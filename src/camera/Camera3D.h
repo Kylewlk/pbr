@@ -36,13 +36,11 @@ public:
     void forward(float distance);
     void round(float xOffset, float yOffset); // 绕着target转动.
 
-//    void onMouseEvent(const MouseEvent* event) override;
-
 private:
     Camera3D();
 
 
     float fov{60.0f};
-    bool lockUp {true}; //round 时锁定Y轴.
+    bool lockUp {true}; //round 时锁定Y轴， 不更新up向量这样可以保证 round水平旋转固定.
 };
 

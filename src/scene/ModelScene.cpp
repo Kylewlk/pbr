@@ -33,13 +33,8 @@ void ModelScene::draw()
     this->camera->setViewSize((float)this->width, (float)this->height);
     this->camera->update();
 
-    auto mat = math::scale({100, 100, 100});
-    auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
-
     shader->use();
     shader->setUniform("viewProj", camera->getViewProj());
-    shader->setUniform("model", mat);
-    shader->setUniform("normalMatrix", normalMat);
 
     shader->setUniform("lightColor", math::Vec3{0.9, 0.9, 0.9});
     shader->setUniform("lightDir", glm::normalize(math::Vec3{0.9, 0.9, 0.0}));
@@ -49,6 +44,29 @@ void ModelScene::draw()
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
+
+    auto mat = math::translate({120, 0, 0}) * math::scale({100, 100, 100});
+    auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
+    shader->setUniform("model", mat);
+    shader->setUniform("normalMatrix", normalMat);
+    renderSphere();
+
+    mat = math::translate({-120, 0, 0}) * math::scale({100, 100, 100});
+    normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
+    shader->setUniform("model", mat);
+    shader->setUniform("normalMatrix", normalMat);
+    renderSphere();
+
+    mat = math::translate({120, 220, 0}) * math::scale({100, 100, 100});
+    normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
+    shader->setUniform("model", mat);
+    shader->setUniform("normalMatrix", normalMat);
+    renderSphere();
+
+    mat = math::translate({-120, 220, 0}) * math::scale({100, 100, 100});
+    normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
+    shader->setUniform("model", mat);
+    shader->setUniform("normalMatrix", normalMat);
     renderSphere();
 }
 
@@ -78,6 +96,7 @@ void ModelScene::drawProperty()
         if (ImGui::Button("Save", {100.0f, 0}))
         {
             const auto& pixels = this->fbResolved->readPixel();
+            stbi_flip_vertically_on_write(true);
             stbi_write_png(".data/picture-scene.png", width, height, 4, pixels.data(), width * 4);
 
             auto workingDir = std::filesystem::current_path().u8string();

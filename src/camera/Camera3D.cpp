@@ -42,6 +42,10 @@ void Camera3D::update()
 
     this->proj = math::perspective(fov, viewWidth/viewHeight, nearPlane, farPlane);
     this->view = math::lookAt(position, target, up);
+//    this->up.x = view[0][1];
+//    this->up.y = view[1][1];
+//    this->up.z = view[2][1];
+
     this->viewProj = proj * view;
 
     this->isNeedUpdate = false;
@@ -65,16 +69,16 @@ void Camera3D::round(float xOffset, float yOffset)
 {
     if ( abs(xOffset) > 0.1f || abs(yOffset) > 0.1f)
     {
+
         auto pos = position - target;
-        if (!math::equal(xOffset, 0.0f))
+        if (!math::equal(xOffset, 0.0f) && std::abs(xOffset) >= std::abs(yOffset))
         {
-            auto matRotateY = math::rotate(xOffset * 0.02f, up);
+            auto matRotateY = math::rotate(xOffset * 0.02f, this->up);
             auto newPos = matRotateY * math::Vec4(pos, 1.0);
             this->position = math::Vec3(newPos) + target;
             isNeedUpdate = true;
         }
-
-        if (!math::equal(yOffset, 0.0f))
+        else if (!math::equal(yOffset, 0.0f))
         {
             math::Vec3 const zDir(normalize(position - target));
             math::Vec3 const xDir(normalize(cross(up, zDir)));
@@ -104,35 +108,16 @@ void Camera3D::round(float xOffset, float yOffset)
 void Camera3D::forward(float distance)
 {
     math::Vec3 dir = normalize(this->target - position);
-    this->position += (dir * distance * this->updateSpeed);
 
-    this->isNeedUpdate = true;
+    auto newPos = this->position + (dir * distance * this->updateSpeed);
+    auto newDir = this->target - newPos;
+
+    if (glm::dot(newDir, dir) > 0.01)
+    {
+        this->position += (dir * distance * this->updateSpeed);
+        this->isNeedUpdate = true;
+    }
 }
-
-//void Camera3D::onMouseEvent(const MouseEvent* event)
-//{
-//    Camera::onMouseEvent(event);
-//
-//    if(event->mouseEventType == MouseEvent::kMouseMove)
-//    {
-//        if (holdLeftButton)
-//        {
-//            round(event->posDelta.x, -event->posDelta.y);
-//        }
-//        else if (holdRightButton)
-//        {
-//
-//        }
-//        else if (holdMidButton)
-//        {
-//            move({event->posDelta.x, -event->posDelta.y, 0.0f});
-//        }
-//    }
-//    else if(event->mouseEventType == MouseEvent::kMouseScroll)
-//    {
-//        forward((float)event->scrollY*20.0f);
-//    }
-//}
 
 void Camera3D::updateViewSize(float width, float height)
 {
