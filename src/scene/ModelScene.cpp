@@ -12,7 +12,7 @@
 #include "common/RenderModel.h"
 
 ModelScene::ModelScene(int width, int height)
-    : Base3DScene(ID, width, height)
+    : Base3DScene(ID, width, height, true)
 {
     this->shader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
     this->camera = Camera3D::create();
@@ -38,8 +38,8 @@ void ModelScene::reset()
     this->lightColor = {0.9, 0.9, 0.9};
     this->lightDir = {1, 1, 0.3};
 
-    this->sphereColor = math::Vec3{0.6, 1.0, 0.9};
-    this->cubeColor = math::Vec3{0.4, 0.7, 1.0};
+    this->sphereColor = math::Vec3{0.3, 0.7, 0.5};
+    this->cubeColor = math::Vec3{0.2, 0.6, 0.8};
 }
 
 void ModelScene::draw()
@@ -56,6 +56,7 @@ void ModelScene::draw()
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
+//    glDisable(GL_MULTISAMPLE);
 
     shader->setUniform("albedo", sphereColor);
 

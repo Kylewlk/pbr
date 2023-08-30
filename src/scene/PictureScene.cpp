@@ -11,7 +11,7 @@
 #include "common/Logger.h"
 
 PictureScene::PictureScene(int width, int height)
-    : Scene(ID, width, height)
+    : Scene(ID, width, height, true)
 {
     this->texture = Texture::create("asset/Lenna.png");
     this->shader = Shader::createByPath("asset/shader/picture.vert", "asset/shader/picture.frag");
@@ -50,6 +50,7 @@ void PictureScene::draw()
     glUniformMatrix4fv(1, 1, false, (float*)&mat);
     glUniform4fv(2, 1, (float*)&color);
     shader->bindTexture(3, this->texture);
+    glEnable(GL_MULTISAMPLE);
     drawQuad();
 }
 

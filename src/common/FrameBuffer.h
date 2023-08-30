@@ -56,8 +56,11 @@ public:
     FrameBuffer(const FrameBuffer&) = delete;
     FrameBuffer& operator=(const FrameBuffer&) = delete;
 
-    static FrameBufferRef create(int width, int height, RenderTarget::Format colorFormat = RenderTarget::kTexColor, RenderTarget::Format depthFormat = RenderTarget::kNone);
-    static FrameBufferRef createMultisample(int width, int height, GLsizei samples = 4,  bool isTex = true, bool isNeedDepth = true);
+    static FrameBufferRef create(int width, int height, RenderTarget::Format colorFormat = RenderTarget::kTexColor,
+                                 RenderTarget::Format depthFormat = RenderTarget::kNone);
+    static FrameBufferRef createMultisample(int width, int height, GLsizei samples = 4,
+                                            RenderTarget::Format colorFormat = RenderTarget::kTexColor,
+                                            bool isNeedDepth = true);
 
     size_t addColorAttachment(GLenum internalFormat);
     size_t addColorAttachment(const RenderTargetRef& target);
@@ -93,7 +96,7 @@ private:
 
     bool init(int width, int height, RenderTarget::Format colorFormat = RenderTarget::kTexColor,
               RenderTarget::Format depthFormat = RenderTarget::kNone);
-    bool initMultisample(int width, int height, GLsizei samples,  bool isTex, bool isNeedDepth);
+    bool initMultisample(int width, int height, GLsizei samples,  RenderTarget::Format colorFormat, bool isNeedDepth);
 
     uint32_t width{};
     uint32_t height{};

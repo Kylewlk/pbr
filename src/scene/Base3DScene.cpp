@@ -8,8 +8,8 @@
 #include "common/Logger.h"
 #include "common/FrameBuffer.h"
 
-Base3DScene::Base3DScene(const char* ID, int width, int height)
-    : Scene(ID, width, height)
+Base3DScene::Base3DScene(const char* ID, int width, int height, bool multisample)
+    : Scene(ID, width, height, multisample)
 {
     this->camera = Camera3D::create();
     this->camera->setLockUp(true);

@@ -128,10 +128,12 @@ FrameBufferRef FrameBuffer::create(int width, int height,
     return nullptr;
 }
 
-FrameBufferRef FrameBuffer::createMultisample(int width, int height, GLsizei samples /*= 4*/, bool isTex /*= true*/, bool isNeedDepth /*= true*/)
+FrameBufferRef FrameBuffer::createMultisample(int width, int height, GLsizei samples /*= 4*/,
+                                              RenderTarget::Format colorFormat /*= RenderTarget::kTexColor*/,
+                                              bool isNeedDepth /*= true*/)
 {
     auto fb = new FrameBuffer();
-    if (fb->initMultisample(width, height, samples, isTex, isNeedDepth))
+    if (fb->initMultisample(width, height, samples, colorFormat, isNeedDepth))
     {
         return FrameBufferRef(fb);
     }
@@ -146,7 +148,7 @@ size_t FrameBuffer::addColorAttachment(GLenum internalFormat)
         format = RenderTarget::kRenderColor;
     }
 
-    auto rt = RenderTarget::createEx((int) width, (int) height, RenderTarget::kTexColor, internalFormat, samples);
+    auto rt = RenderTarget::createEx((int) width, (int) height, format, internalFormat, samples);
     return this->addColorAttachment(rt);
 }
 
@@ -251,33 +253,33 @@ bool FrameBuffer::init(int width_, int height_, RenderTarget::Format colorFormat
     return true;
 }
 
-bool FrameBuffer::initMultisample(int width_, int height_, GLsizei samples,  bool isTex, bool isNeedDepth)
+bool FrameBuffer::initMultisample(int width_, int height_, GLsizei samples_, RenderTarget::Format colorFormat, bool isNeedDepth)
 {
     this->width = width_;
     this->height = height_;
+    this->samples = samples_;
 
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &oldFboId);
     glGenFramebuffers(1, &this->handle);
     glBindFramebuffer(GL_FRAMEBUFFER, this->handle);
 
-    if (isTex)
+    auto color= RenderTarget::create(width_, height_, colorFormat, samples_);
+    if (colorFormat == RenderTarget::kTexColor || colorFormat == RenderTarget::kTexColorFloat)
     {
-        auto color= RenderTarget::create(width_, height_, RenderTarget::kTexColor, samples);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, color->handle, 0);
         if (isNeedDepth)
         {
-            depth= RenderTarget::create(width_, height_, RenderTarget::kTexDepth, samples);
+            depth= RenderTarget::create(width_, height_, RenderTarget::kTexDepth, samples_);
             glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth->handle, 0);
         }
         this->colorAttachments.push_back(std::move(color));
     }
     else
     {
-        auto color= RenderTarget::create(width_, height_, RenderTarget::kRenderColor, samples);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, color->handle);
         if (isNeedDepth)
         {
-            depth= RenderTarget::create(width_, height_, RenderTarget::kRenderDepth, samples);
+            depth= RenderTarget::create(width_, height_, RenderTarget::kRenderDepth, samples_);
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth->handle);
         }
         this->colorAttachments.push_back(std::move(color));

@@ -14,7 +14,7 @@ public:
     Base3DScene& operator=(Base3DScene&) = delete;
 
 protected:
-    Base3DScene(const char* ID, int width, int height);
+    Base3DScene(const char* ID, int width, int height, bool multisample);
 
     void onMouseEvent(const MouseEvent* e) override;
 

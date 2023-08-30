@@ -32,7 +32,7 @@ public:
     virtual void render();
 
 protected:
-    Scene(const char* name, int width, int height);
+    Scene(const char* name, int width, int height, bool multisample);
 
     virtual void draw();
     virtual void drawProperty();
@@ -40,11 +40,14 @@ protected:
     virtual void onMouseEvent(const MouseEvent* e);
     virtual void onKeyEvent(const KeyEvent* e);
 
+    static constexpr int multisampleCount = 4;
+
     std::string name;
     int width{0};
     int height{0};
-    math::Vec4 clearColor{0.0f, 0.0f, 0.0f, 1.0f};
+    bool multisample{true};
     bool showPropertyWindow{true};
+    math::Vec4 clearColor{0.0f, 0.0f, 0.0f, 1.0f};
 
     FrameBufferRef fbDraw; // multi-sample
     FrameBufferRef fbResolved;
