@@ -13,12 +13,14 @@
 
 #include "scene/PictureScene.hpp"
 #include "scene/ModelScene.hpp"
+#include "scene/01PbrLightScene.h"
 
 #define ADD_SCENE_MENU(scene) {scene::ID, &scene::create}
 
 AppMenu mainMenus[]{
     ADD_SCENE_MENU(PictureScene),
     ADD_SCENE_MENU(ModelScene),
+    ADD_SCENE_MENU(PbrLightScene),
 
 };
 int mainMenuCount = sizeof(mainMenus)/(sizeof (mainMenus[0]));
