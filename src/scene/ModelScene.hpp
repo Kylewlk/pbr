@@ -25,6 +25,9 @@ private:
 
     ShaderRef shader;
 
+    math::Vec3 lightColor{};
+    math::Vec3 lightDir{};
     math::Vec3 sphereColor{};
+    math::Vec3 cubeColor{};
 };
 

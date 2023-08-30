@@ -33,7 +33,13 @@ SceneRef ModelScene::create()
 void ModelScene::reset()
 {
     this->camera->resetView();
-    this->sphereColor = math::Vec3{0.9, 0.9, 0.9};
+    this->camera->forward(-200);
+
+    this->lightColor = {0.9, 0.9, 0.9};
+    this->lightDir = {1, 1, 0.3};
+
+    this->sphereColor = math::Vec3{0.6, 1.0, 0.9};
+    this->cubeColor = math::Vec3{0.4, 0.7, 1.0};
 }
 
 void ModelScene::draw()
@@ -44,14 +50,14 @@ void ModelScene::draw()
     shader->use();
     shader->setUniform("viewProj", camera->getViewProj());
 
-    shader->setUniform("lightColor", sphereColor);
-    shader->setUniform("lightDir", glm::normalize(math::Vec3{0.9, 0.9, 0.0}));
+    shader->setUniform("lightColor", lightColor);
+    shader->setUniform("lightDir", glm::normalize(lightDir));
     shader->setUniform("cameraPos", camera->getViewPosition());
-
-    shader->setUniform("albedo", math::Vec3{0.6, 1.0, 0.9});
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
+
+    shader->setUniform("albedo", sphereColor);
 
     auto mat = math::translate({120, 0, 0}) * math::scale({100, 100, 100});
     auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
@@ -77,20 +83,25 @@ void ModelScene::draw()
     shader->setUniform("normalMatrix", normalMat);
     renderSphere();
 
-    mat = math::translate({120, -220, 0}) * math::scale({100, 100, 100});
-    normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
-    shader->setUniform("model", mat);
-    shader->setUniform("normalMatrix", normalMat);
-    renderSphere();
+    shader->setUniform("albedo", cubeColor);
 
-    mat = math::translate({-120, -220, 0}) * math::scale({100, 100, 100});
+    mat = math::translate({120, -220, 0}) * math::scale({80, 80, 80});
     normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
     shader->setUniform("model", mat);
     shader->setUniform("normalMatrix", normalMat);
-    renderSphere();
+    renderCube();
+
+    mat = math::translate({-120, -220, 0}) * math::scale({80, 80, 80});
+    normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
+    shader->setUniform("model", mat);
+    shader->setUniform("normalMatrix", normalMat);
+    renderCube();
 }
 
 void ModelScene::drawSettings()
 {
+    ImGui::ColorEdit3("Light Color", (float*)&lightColor);
+    ImGui::DragFloat3("Light Direction", (float*)&lightDir);
     ImGui::ColorEdit3("Sphere Color", (float*)&sphereColor);
+    ImGui::ColorEdit3("Cube Color", (float*)&cubeColor);
 }
