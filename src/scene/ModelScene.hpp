@@ -3,9 +3,9 @@
 //
 #pragma once
 
-#include "Scene.hpp"
+#include "Base3DScene.h"
 
-class ModelScene : public Scene
+class ModelScene : public Base3DScene
 {
 public:
     static constexpr const char* ID = "Model Scene";
@@ -19,19 +19,12 @@ public:
 private:
     ModelScene(int width, int height);
 
-    void onMouseEvent(const MouseEvent* e) override;
-
     void draw() override;
-    void drawProperty() override;
+    void reset() override;
+    void drawSettings() override;
 
     ShaderRef shader;
-    Camera3DRef camera;
 
-    math::Vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
-    float rotation = 0.0f;
-
-    math::Vec2 lastMousePos{};
-    bool holdLeftButton{false};
-    bool holdMidButton{false};
+    math::Vec3 sphereColor{};
 };
 
