@@ -27,6 +27,8 @@ private:
 
     ShaderRef shaderTexLinear;
     Camera2DRef camera2d;
+    TextureRef roomHdr;
+    TextureRef skyHdr;
     TextureRef textureHdr;
 
     ShaderRef shader;
@@ -36,6 +38,7 @@ private:
     math::Vec3 sphereColor{};
     math::Vec3 cubeColor{};
 
+    int hdrType = 0;
     int drawType = 0;
 };
 

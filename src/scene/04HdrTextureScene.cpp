@@ -17,7 +17,8 @@ HdrTextureScene::HdrTextureScene(int width, int height)
 {
     this->shader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
 
-    this->textureHdr = Texture::createHDR("asset/room.hdr");
+    this->roomHdr = Texture::createHDR("asset/room.hdr");
+    this->textureHdr = this->roomHdr;
     this->shaderTexLinear = Shader::createByPath("asset/shader/picture.vert", "asset/shader/picture_linear.frag");
     this->camera2d = Camera2D::create();
 
@@ -36,7 +37,11 @@ SceneRef HdrTextureScene::create()
 void HdrTextureScene::reset()
 {
     this->camera->resetView();
-    this->camera->forward(-200);
+    if (drawType == 1) // draw cube
+    {
+        this->camera->round(50, 0);
+        this->camera->round(0, -50);
+    }
     this->camera2d->resetView();
 
     this->lightColor = {0.9, 0.9, 0.9};
@@ -98,6 +103,25 @@ void HdrTextureScene::drawSettings()
     ImGui::ColorEdit3("Sphere Color", (float*)&sphereColor, ImGuiColorEditFlags_Float);
     ImGui::ColorEdit3("Cube Color", (float*)&cubeColor, ImGuiColorEditFlags_Float);
 
+    ImGui::Separator();
+    if(ImGui::RadioButton("HDR Room", &hdrType, 0))
+    {
+        if (roomHdr == nullptr)
+        {
+            this->roomHdr = Texture::createHDR("asset/room.hdr");
+        }
+        this->textureHdr = roomHdr;
+    }
+    if(ImGui::RadioButton("HDR Sky", &hdrType, 1))
+    {
+        if (skyHdr == nullptr)
+        {
+            this->skyHdr = Texture::createHDR("asset/sky.hdr");
+        }
+        this->textureHdr = skyHdr;
+    }
+
+    ImGui::Separator();
     bool changeShowType {false};
     changeShowType = ImGui::RadioButton("HDR Texture", &drawType, 0) || changeShowType;
     changeShowType = ImGui::RadioButton("Cube", &drawType, 1) || changeShowType;
