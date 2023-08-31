@@ -15,6 +15,7 @@
 #include "scene/ModelScene.hpp"
 #include "scene/01PbrLightScene.h"
 #include "scene/02PbrLight2Scene.h"
+#include "scene/03PbrTextureScene.h"
 
 #define ADD_SCENE_MENU(scene) {scene::ID, &scene::create}
 
@@ -23,6 +24,7 @@ AppMenu mainMenus[]{
     ADD_SCENE_MENU(ModelScene),
     ADD_SCENE_MENU(PbrLightScene),
     ADD_SCENE_MENU(PbrLight2Scene),
+    ADD_SCENE_MENU(PbrTextureScene),
 
 };
 int mainMenuCount = sizeof(mainMenus)/(sizeof (mainMenus[0]));

@@ -11,8 +11,8 @@ uniform float metallic;
 uniform float roughness;
 uniform float ao;
 
-const int lightCount = 8;
 // lights
+const int lightCount = 8;
 uniform vec3 lightPositions[lightCount];
 uniform vec3 lightColors[lightCount];
 uniform bool lightEnables[lightCount];
