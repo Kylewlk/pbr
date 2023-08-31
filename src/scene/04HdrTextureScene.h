@@ -19,9 +19,15 @@ public:
 private:
     HdrTextureScene(int width, int height);
 
+    void onMouseEvent(const MouseEvent* e) override;
+
     void draw() override;
     void reset() override;
     void drawSettings() override;
+
+    ShaderRef shaderTexLinear;
+    Camera2DRef camera2d;
+    TextureRef textureHdr;
 
     ShaderRef shader;
 
@@ -29,5 +35,7 @@ private:
     math::Vec3 lightDir{};
     math::Vec3 sphereColor{};
     math::Vec3 cubeColor{};
+
+    int drawType = 0;
 };
 
