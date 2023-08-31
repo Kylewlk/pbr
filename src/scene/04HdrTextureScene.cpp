@@ -15,13 +15,16 @@
 HdrTextureScene::HdrTextureScene(int width, int height)
     : Base3DScene(ID, width, height, true)
 {
-    this->shader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
-
     this->roomHdr = Texture::createHDR("asset/room.hdr");
     this->textureHdr = this->roomHdr;
     this->shaderTexLinear = Shader::createByPath("asset/shader/picture.vert", "asset/shader/picture_linear.frag");
-    this->camera2d = Camera2D::create();
 
+    this->shaderToCubemap  = Shader::createByPath("asset/shader/cubemap.vert",
+                                                 "asset/shader/cubemap_from_hdr.frag");
+
+    this->shader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
+
+    this->camera2d = Camera2D::create();
     HdrTextureScene::reset();
 }
 
@@ -59,6 +62,8 @@ void HdrTextureScene::draw()
     this->camera2d->update();
 
     glEnable(GL_MULTISAMPLE);
+    glEnable(GL_DEPTH_TEST);
+    float modelScale = 100;
 
     if (drawType == 0)
     {
@@ -71,8 +76,16 @@ void HdrTextureScene::draw()
         drawQuad();
         return;
     }
+    if (drawType == 1)
+    {
+        shaderToCubemap->use();
+        auto mat = camera->getViewProj() * math::scale({modelScale, modelScale, modelScale});
+        shaderToCubemap->setUniform("viewProj", mat);
+        shaderToCubemap->bindTexture("equirectangularMap", this->textureHdr);
+        renderCube();
+        return;
+    }
 
-    glEnable(GL_DEPTH_TEST);
 
     shader->use();
     shader->setUniform("viewProj", camera->getViewProj());
@@ -81,7 +94,7 @@ void HdrTextureScene::draw()
     shader->setUniform("cameraPos", camera->getViewPosition());
     shader->setUniform("albedo", sphereColor);
 
-    auto mat = math::scale({100, 100, 100});
+    auto mat = math::scale({modelScale, modelScale, modelScale});
     auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
     shader->setUniform("model", mat);
     shader->setUniform("normalMatrix", normalMat);
@@ -124,7 +137,7 @@ void HdrTextureScene::drawSettings()
     ImGui::Separator();
     bool changeShowType {false};
     changeShowType = ImGui::RadioButton("HDR Texture", &drawType, 0) || changeShowType;
-    changeShowType = ImGui::RadioButton("Cube", &drawType, 1) || changeShowType;
+    changeShowType = ImGui::RadioButton("Cube Map", &drawType, 1) || changeShowType;
     changeShowType = ImGui::RadioButton("Sphere", &drawType, 2) || changeShowType;
     if (changeShowType)
     {

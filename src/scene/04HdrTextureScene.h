@@ -31,6 +31,7 @@ private:
     TextureRef skyHdr;
     TextureRef textureHdr;
 
+    ShaderRef shaderToCubemap;
     ShaderRef shader;
 
     math::Vec3 lightColor{};
