@@ -167,6 +167,33 @@ void Shader::setUniform(std::string_view name, int value) const
     glUniform1i(location, (GLint)value);
 }
 
+void Shader::setUniform(std::string_view name, bool* boolArray, int count) const
+{
+    for (int i = 0; i < count; ++i)
+    {
+        std::string nameIndex{name};
+        nameIndex += '[';
+        nameIndex += std::to_string(i);
+        nameIndex += ']';
+        auto location = glGetUniformLocation(this->program, nameIndex.data());
+        if (location == -1)
+        {
+            return;
+        }
+        glUniform1i(location, (GLint)(boolArray[i]));
+    }
+}
+
+void Shader::setUniform(std::string_view name, int* intArray, int count) const
+{
+    auto location = glGetUniformLocation(this->program, name.data());
+    if (location == -1)
+    {
+        return;
+    }
+    glUniform1iv(location, count, intArray);
+}
+
 void Shader::setUniform(std::string_view name, float f) const
 {
     auto location = glGetUniformLocation(this->program, name.data());

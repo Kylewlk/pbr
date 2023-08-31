@@ -11,9 +11,11 @@ uniform float metallic;
 uniform float roughness;
 uniform float ao;
 
+const int lightCount = 8;
 // lights
-uniform vec3 lightPositions[4];
-uniform vec3 lightColors[4];
+uniform vec3 lightPositions[lightCount];
+uniform vec3 lightColors[lightCount];
+uniform bool lightEnables[lightCount];
 
 uniform vec3 camPos;
 
@@ -71,13 +73,17 @@ void main()
 
     // reflectance equation
     vec3 Lo = vec3(0.0);
-    for(int i = 0; i < 4; ++i)
+    for(int i = 0; i < lightCount; ++i)
     {
+        if(!lightEnables[i])
+        {
+            continue;
+        }
         // calculate per-light radiance
         vec3 L = normalize(lightPositions[i] - WorldPos);
         vec3 H = normalize(V + L);
         float distance = length(lightPositions[i] - WorldPos);
-        float attenuation = 1.0 / (distance * distance);
+        float attenuation = 1.0 / (distance * distance * 0.0004);
         vec3 radiance = lightColors[i] * attenuation;
 
         // Cook-Torrance BRDF

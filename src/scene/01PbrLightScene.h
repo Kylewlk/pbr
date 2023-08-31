@@ -23,13 +23,14 @@ private:
     void reset() override;
     void drawSettings() override;
 
-    static constexpr int lightCount = 4;
+    static constexpr int lightCount = 8;
 
     ShaderRef pbrShader;
     ShaderRef lightShader;
 
     math::Vec3 lightColors[lightCount]{};
     math::Vec3 lightPositions[lightCount]{};
+    bool lightEnables[lightCount]{false};
 
     math::Vec3 albedo{0.5f, 0.0f, 0.0f};
     float roughness{0.5};

@@ -101,8 +101,8 @@ void ModelScene::draw()
 
 void ModelScene::drawSettings()
 {
-    ImGui::ColorEdit3("Light Color", (float*)&lightColor);
+    ImGui::ColorEdit3("Light Color", (float*)&lightColor, ImGuiColorEditFlags_Float);
     ImGui::DragFloat3("Light Direction", (float*)&lightDir);
-    ImGui::ColorEdit3("Sphere Color", (float*)&sphereColor);
-    ImGui::ColorEdit3("Cube Color", (float*)&cubeColor);
+    ImGui::ColorEdit3("Sphere Color", (float*)&sphereColor, ImGuiColorEditFlags_Float);
+    ImGui::ColorEdit3("Cube Color", (float*)&cubeColor, ImGuiColorEditFlags_Float);
 }

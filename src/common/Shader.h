@@ -46,6 +46,8 @@ public:
 
     void setUniform(std::string_view name, bool b) const;
     void setUniform(std::string_view name, int i) const;
+    void setUniform(std::string_view name, bool* boolArray, int count) const;
+    void setUniform(std::string_view name, int* intArray, int count) const;
     void setUniform(std::string_view name, float f) const;
     void setUniform(std::string_view name, float f1, float f2) const;
     void setUniform(std::string_view name, float f1, float f2, float f3) const;
@@ -53,9 +55,9 @@ public:
     void setUniform(std::string_view name, const math::Vec2& vec2) const;
     void setUniform(std::string_view name, const math::Vec3& vec3) const;
     void setUniform(std::string_view name, const math::Vec4& vec4) const;
-    void setUniform(std::string_view name, const math::Vec2* vec2, int count) const;
-    void setUniform(std::string_view name, const math::Vec3* vec3, int count) const;
-    void setUniform(std::string_view name, const math::Vec4* vec4, int count) const;
+    void setUniform(std::string_view name, const math::Vec2* vec2Array, int count) const;
+    void setUniform(std::string_view name, const math::Vec3* vec3Array, int count) const;
+    void setUniform(std::string_view name, const math::Vec4* vec4Array, int count) const;
     void setUniform(std::string_view name, const math::Mat2& mat2) const;
     void setUniform(std::string_view name, const math::Mat3& mat3) const;
     void setUniform(std::string_view name, const math::Mat4& mat4) const;

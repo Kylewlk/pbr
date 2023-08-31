@@ -35,22 +35,27 @@ SceneRef PbrLightScene::create()
 void PbrLightScene::reset()
 {
     this->camera->resetView();
-    this->camera->forward(200);
+//    this->camera->forward(200);
 
-    this->lightPositions[0] = {-1000.0f,  1000.0f, 1000.0f};
-    this->lightPositions[1] = { 1000.0f,  1000.0f, 1000.0f};
-    this->lightPositions[2] = {-1000.0f, -1000.0f, 1000.0f};
-    this->lightPositions[3] = { 1000.0f, -1000.0f, 1000.0f};
+    this->lightPositions[0] = {-500.0f,  500.0f, 500.0f};
+    this->lightPositions[1] = { 500.0f,  500.0f, 500.0f};
+    this->lightPositions[2] = {-500.0f, -500.0f, 500.0f};
+    this->lightPositions[3] = { 500.0f, -500.0f, 500.0f};
+    this->lightPositions[4] = {-500.0f,  500.0f, -500.0f};
+    this->lightPositions[5] = { 500.0f,  500.0f, -500.0f};
+    this->lightPositions[6] = {-500.0f, -500.0f, -500.0f};
+    this->lightPositions[7] = { 500.0f, -500.0f, -500.0f};
 
-    this->lightColors[0] = { 30000000.0f, 650000.0f, 650000.0f};
-    this->lightColors[1] = { 30000000.0f, 650000.0f, 650000.0f};
-    this->lightColors[2] = { 30000000.0f, 650000.0f, 650000.0f};
-    this->lightColors[3] = { 30000000.0f, 650000.0f, 650000.0f};
+    for (int i = 0; i < lightCount; ++i)
+    {
+        this->lightColors[i] = { 300.0f, 300.0f, 300.0f};
+        this->lightEnables[i] = false;
+    }
+    lightEnables[1] = true;
 
-
-    this->albedo = {0.5f, 0.0f, 0.0f};
-    this->roughness = {0.2};
-    this->metallic = {0.9};
+    this->albedo = {0.8f, 0.0f, 0.0f};
+    this->roughness = {0.3};
+    this->metallic = {0.2};
     this->ao = {1.0};
 }
 
@@ -68,8 +73,9 @@ void PbrLightScene::draw()
     pbrShader->setUniform("camPos", camera->getViewPosition());
     pbrShader->setUniform("lightColors", lightColors, lightCount);
     pbrShader->setUniform("lightPositions", lightPositions, lightCount);
+    pbrShader->setUniform("lightEnables", lightEnables, lightCount);
 
-    auto mat = math::scale({100, 100, 100});
+    auto mat = math::scale({50, 50, 50});
     auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
     pbrShader->setUniform("model", mat);
     pbrShader->setUniform("normalMatrix", normalMat);
@@ -81,39 +87,70 @@ void PbrLightScene::draw()
 
     renderSphere();
 
-
-
     lightShader->use();
     lightShader->setUniform("viewProj", camera->getViewProj());
-    lightShader->setUniform("lightColor", math::Vec3 {1, 1, 1});
+    lightShader->setUniform("lightColor", math::Vec3 {0.5, 0.5, 0.5});
     lightShader->setUniform("lightDir", glm::normalize(math::Vec3{1, 1, 0.5}));
     lightShader->setUniform("cameraPos", camera->getViewPosition());
-    lightShader->setUniform("albedo", math::Vec3{1, 1, 1});
 
-    mat = math::translate(lightPositions[0]) * math::scale({10, 10, 10});
-    normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
-    lightShader->setUniform("model", mat);
-    lightShader->setUniform("normalMatrix", normalMat);
-    renderSphere();
+    for (int i = 0; i < lightCount; ++i)
+    {
+        if (lightEnables[i])
+        {
+            lightShader->setUniform("albedo", math::Vec3{1, 1, 1});
+        }
+        else
+        {
+            lightShader->setUniform("albedo", math::Vec3{0.1, 0.3, 0.2});
+        }
 
-    mat = math::translate({120, 220, 0}) * math::scale({10, 10, 10});
-    normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
-    lightShader->setUniform("model", mat);
-    lightShader->setUniform("normalMatrix", normalMat);
-    renderSphere();
-
-    mat = math::translate({-120, 220, 0}) * math::scale({10, 10, 10});
-    normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
-    lightShader->setUniform("model", mat);
-    lightShader->setUniform("normalMatrix", normalMat);
-    renderSphere();
-
+        mat = math::translate(lightPositions[i]) * math::scale({10, 10, 10});
+        normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
+        lightShader->setUniform("model", mat);
+        lightShader->setUniform("normalMatrix", normalMat);
+        renderSphere();
+    }
 }
 
 void PbrLightScene::drawSettings()
 {
-//    ImGui::ColorEdit3("Light Color", (float*)&lightColor);
-//    ImGui::DragFloat3("Light Direction", (float*)&lightDir);
-//    ImGui::ColorEdit3("Sphere Color", (float*)&sphereColor);
-//    ImGui::ColorEdit3("Cube Color", (float*)&cubeColor);
+
+    for (int i = 0; i < lightCount; ++i)
+    {
+        std::string name = "Enable Light ";
+        name += std::to_string(i);
+
+        ImGui::Checkbox(name.c_str(), &lightEnables[i]);
+    }
+    if (ImGui::Button("All Light"))
+    {
+        for (auto& lightEnable : lightEnables)
+        {
+            lightEnable = true;
+        }
+    }
+    ImGui::SameLine(0, 30);
+    if (ImGui::Button("Half Light"))
+    {
+        for (int i = 0; i < lightCount; ++i)
+        {
+            lightEnables[i] = i < 4;
+        }
+    }
+    ImGui::SameLine(0, 30);
+    if (ImGui::Button("1 Light"))
+    {
+        for (auto& lightEnable : lightEnables)
+        {
+            lightEnable = false;
+        }
+        lightEnables[1] = true;
+    }
+    ImGui::Separator();
+
+    ImGui::ColorEdit3("albedo", (float*)&albedo, ImGuiColorEditFlags_Float);
+    ImGui::SliderFloat("roughness", &roughness, 0.0001, 1.0);
+    ImGui::SliderFloat("metallic", &metallic, 0.0001, 1.0);
+    ImGui::SliderFloat("ao", &ao, 0.0, 1.0);
+
 }
