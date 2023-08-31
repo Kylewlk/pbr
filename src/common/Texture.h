@@ -19,7 +19,15 @@ public:
     static TextureRef create(const ByteBuffer& picData, bool premultiply = true);
     static TextureRef createHDR(std::string_view picPath);
 
-    static TextureRef create(GLenum format, int32_t width, int32_t height);
+    static TextureRef create(GLenum type, GLenum format, int32_t width, int32_t height, int32_t levels, int32_t depth = -1);
+    static TextureRef create(GLenum format, int32_t width, int32_t height, int levels = 1)
+    {
+        create(GL_TEXTURE_2D,format, width, height, levels, -1);
+    }
+    static TextureRef createCubemap(GLenum format, int32_t width, int32_t height, int levels = 1)
+    {
+        create(GL_TEXTURE_CUBE_MAP, format, width, height, levels, -1);
+    }
 
     void update(int x, int y, int width, int height, GLenum format, GLenum type, void* data);
 

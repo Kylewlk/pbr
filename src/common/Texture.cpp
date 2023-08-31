@@ -185,22 +185,24 @@ void Texture::bind(int unit) const
     glBindTexture(GL_TEXTURE_2D, tex);
 }
 
-TextureRef Texture::create(GLenum format, int32_t width, int32_t height)
+TextureRef Texture::create(GLenum type, GLenum format, int32_t levels, int32_t width, int32_t height, int32_t depth /*=-1*/)
 {
     GLuint tex = 0;
     glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexStorage2D(GL_TEXTURE_2D, 1, format, width, height);
+    glBindTexture(type, tex);
+    if (depth <= 0)
+    {
+        glTexStorage2D(type, levels, format, width, height);
+    }
+    else
+    {
+        glTexStorage3D(type, levels, format, width, height, depth);
+    }
 
-    if (GL_R8 == format)
+    if (GL_R8 == format || GL_R16 == format || GL_R16F == format)
     {
         GLint swizzle[]{GL_RED, GL_RED, GL_RED, GL_ONE};
-        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-    }
-    else if (GL_RG8 == format)
-    {
-        GLint swizzle[]{GL_RED, GL_RED, GL_RED, GL_GREEN};
-        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+        glTexParameteriv(type, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
     }
 
     auto texture = std::make_shared<Texture>();
