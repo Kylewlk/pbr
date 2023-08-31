@@ -17,9 +17,6 @@ PbrLightScene::PbrLightScene(int width, int height)
     this->pbrShader = Shader::createByPath("asset/shader/model.vert", "asset/shader/01pbr_light.frag");
     this->lightShader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
 
-    this->camera = Camera3D::create();
-    this->camera->setLockUp(true);
-
     PbrLightScene::reset();
 }
 

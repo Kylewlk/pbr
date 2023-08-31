@@ -2,7 +2,7 @@
 // Created by wlk12 on 2023/8/6.
 //
 
-#include "PictureScene.hpp"
+#include "PictureScene.h"
 #include "common/Texture.h"
 #include "common/Shader.h"
 #include "common/FrameBuffer.h"

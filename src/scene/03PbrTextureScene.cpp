@@ -19,9 +19,6 @@ PbrTextureScene::PbrTextureScene(int width, int height)
 
     this->materialGold.load("asset/material/gold/");
 
-    this->camera = Camera3D::create();
-    this->camera->setLockUp(true);
-
     PbrTextureScene::reset();
 }
 

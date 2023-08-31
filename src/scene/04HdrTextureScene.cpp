@@ -2,7 +2,7 @@
 // Created by wlk12 on 2023/8/6.
 //
 
-#include "ModelScene.h"
+#include "04HdrTextureScene.h"
 #include "common/Texture.h"
 #include "common/Shader.h"
 #include "common/FrameBuffer.h"
@@ -11,24 +11,24 @@
 #include "common/Logger.h"
 #include "common/RenderModel.h"
 
-ModelScene::ModelScene(int width, int height)
+HdrTextureScene::HdrTextureScene(int width, int height)
     : Base3DScene(ID, width, height, true)
 {
     this->shader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
 
-    ModelScene::reset();
+    HdrTextureScene::reset();
 }
 
-SceneRef ModelScene::create()
+SceneRef HdrTextureScene::create()
 {
-    struct enable_make_shared : public ModelScene
+    struct enable_make_shared : public HdrTextureScene
     {
-        enable_make_shared() : ModelScene(0, 0) {}
+        enable_make_shared() : HdrTextureScene(0, 0) {}
     };
     return std::make_shared<enable_make_shared>();
 }
 
-void ModelScene::reset()
+void HdrTextureScene::reset()
 {
     this->camera->resetView();
     this->camera->forward(-200);
@@ -40,7 +40,7 @@ void ModelScene::reset()
     this->cubeColor = math::Vec3{0.2, 0.6, 0.8};
 }
 
-void ModelScene::draw()
+void HdrTextureScene::draw()
 {
     this->camera->setViewSize((float)this->width, (float)this->height);
     this->camera->update();
@@ -97,7 +97,7 @@ void ModelScene::draw()
     renderCube();
 }
 
-void ModelScene::drawSettings()
+void HdrTextureScene::drawSettings()
 {
     ImGui::ColorEdit3("Light Color", (float*)&lightColor, ImGuiColorEditFlags_Float);
     ImGui::DragFloat3("Light Direction", (float*)&lightDir);

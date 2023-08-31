@@ -11,11 +11,12 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
-#include "scene/PictureScene.hpp"
-#include "scene/ModelScene.hpp"
+#include "scene/PictureScene.h"
+#include "scene/ModelScene.h"
 #include "scene/01PbrLightScene.h"
 #include "scene/02PbrLight2Scene.h"
 #include "scene/03PbrTextureScene.h"
+#include "scene/04HdrTextureScene.h"
 
 #define ADD_SCENE_MENU(scene) {scene::ID, &scene::create}
 
@@ -25,6 +26,7 @@ AppMenu mainMenus[]{
     ADD_SCENE_MENU(PbrLightScene),
     ADD_SCENE_MENU(PbrLight2Scene),
     ADD_SCENE_MENU(PbrTextureScene),
+    ADD_SCENE_MENU(HdrTextureScene),
 
 };
 int mainMenuCount = sizeof(mainMenus)/(sizeof (mainMenus[0]));
