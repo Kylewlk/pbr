@@ -16,15 +16,16 @@ HdrTextureScene::HdrTextureScene(int width, int height)
     : Base3DScene(ID, width, height, true)
 {
     this->shaderTexLinear = Shader::createByPath("asset/shader/picture.vert", "asset/shader/picture_linear.frag");
-    this->shaderHdrToCubeMap = Shader::createByPath("asset/shader/cubemap.vert",
-                                                 "asset/shader/cubemap_from_hdr.frag");
+    this->shaderHdrToCubeMap = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_from_hdr.frag");
     this->shaderCubMap = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap.frag");
-    this->shader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
+    this->shaderIrradiance = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_irradiance.frag");
 
     this->roomHdr = Texture::createHDR("asset/room.hdr");
     this->createCubMap(roomHdr, roomCubeMap);
+    this->createIrradiance(this->roomCubeMap, this->roomIrradiance);
     this->textureHdr = this->roomHdr;
     this->textureCubeMap = this->roomCubeMap;
+    this->textureIrradiance = roomIrradiance;
 
     this->camera2d = Camera2D::create();
     HdrTextureScene::reset();
@@ -42,7 +43,7 @@ SceneRef HdrTextureScene::create()
 void HdrTextureScene::reset()
 {
     this->camera->resetView();
-    if (drawType == 1 || drawType == 2) // draw cube
+    if (drawType == 1 || drawType == 2 || drawType == 4) // draw cube
     {
         this->camera->round(50, 0);
         this->camera->round(0, -50);
@@ -87,18 +88,27 @@ void HdrTextureScene::draw()
     }
     else if (drawType == 2 || drawType == 3)
     {
-        shaderCubMap->use();
-        auto mat = camera->getViewProj() * math::scale({modelScale, modelScale, modelScale});
-        shaderCubMap->setUniform("viewProj", mat);
-        shaderCubMap->bindTexture("cubeMap", this->textureCubeMap);
-        if (drawType == 2)
-        {
-            renderCube();
-        }
-        else
-        {
-            renderSphere();
-        }
+        drawCubMap(this->textureCubeMap, modelScale, drawType == 2);
+    }
+    else if(drawType == 4 || drawType == 5)
+    {
+        drawCubMap(this->textureIrradiance, modelScale, drawType == 4);
+    }
+}
+
+void HdrTextureScene::drawCubMap(const TextureRef& cubeMap, float scale, bool isCube)
+{
+    shaderCubMap->use();
+    auto mat = camera->getViewProj() * math::scale({scale, scale, scale});
+    shaderCubMap->setUniform("viewProj", mat);
+    shaderCubMap->bindTexture("cubeMap", cubeMap);
+    if (isCube)
+    {
+        renderCube();
+    }
+    else
+    {
+        renderSphere();
     }
 }
 
@@ -116,9 +126,11 @@ void HdrTextureScene::drawSettings()
         {
             this->roomHdr = Texture::createHDR("asset/room.hdr");
             this->createCubMap(roomHdr, roomCubeMap);
+            this->createIrradiance(roomCubeMap, roomIrradiance);
         }
         this->textureHdr = roomHdr;
         this->textureCubeMap = roomCubeMap;
+        this->textureIrradiance = roomIrradiance;
     }
     if(ImGui::RadioButton("HDR Sky", &hdrType, 1))
     {
@@ -126,20 +138,21 @@ void HdrTextureScene::drawSettings()
         {
             this->skyHdr = Texture::createHDR("asset/sky.hdr");
             this->createCubMap(skyHdr, skyCubeMap);
+            this->createIrradiance(skyCubeMap, skyIrradiance);
         }
         this->textureHdr = skyHdr;
         this->textureCubeMap = skyCubeMap;
+        this->textureIrradiance = skyIrradiance;
     }
 
     ImGui::Separator();
     bool changeShowType {false};
     changeShowType = ImGui::RadioButton("HDR Texture", &drawType, 0) || changeShowType;
     changeShowType = ImGui::RadioButton("Cube Map", &drawType, 1) || changeShowType;
-    if(ImGui::RadioButton("Cube Environment", &drawType, 2))
-    {
-        this->reset();
-    }
+    changeShowType = ImGui::RadioButton("Cube Environment", &drawType, 2) || changeShowType;
     changeShowType = ImGui::RadioButton("Sphere Environment", &drawType, 3) || changeShowType;
+    changeShowType = ImGui::RadioButton("Cube Irradiance", &drawType, 4) || changeShowType;
+    changeShowType = ImGui::RadioButton("Sphere Irradiance", &drawType, 5) || changeShowType;
     if (changeShowType)
     {
         this->reset();
@@ -195,6 +208,39 @@ void HdrTextureScene::createCubMap(const TextureRef& hdr, TextureRef& cubeMap)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaderHdrToCubeMap->setUniform("viewProj", project*views[i]);
         shaderHdrToCubeMap->bindTexture("sphericalMap", hdr);
+        renderCube();
+        frameBuffer->unbind();
+    }
+}
+
+void HdrTextureScene::createIrradiance(const TextureRef& cubeMap, TextureRef& irradiance)
+{
+    irradiance = Texture::createCubemap(GL_RGBA16F, 64, 64);
+
+    FrameBufferRef frameBuffer = FrameBuffer::create(64, 64, RenderTarget::kNone, RenderTarget::kRenderDepth);
+
+    using namespace math;
+
+    // 参考 https://blog.csdn.net/wlk1229/article/details/85077819
+    Mat4 project = math::perspective(glm::radians(90.0f), 1, 0.1, 10.0);
+    Mat4 views[]{
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 1.0f,  0.0f,  0.0f), Vec3(0.0f, -1.0f,  0.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3(-1.0f,  0.0f,  0.0f), Vec3(0.0f, -1.0f,  0.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f,  1.0f,  0.0f), Vec3(0.0f,  0.0f,  1.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f, -1.0f,  0.0f), Vec3(0.0f,  0.0f, -1.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f,  0.0f,  1.0f), Vec3(0.0f, -1.0f,  0.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f,  0.0f, -1.0f), Vec3(0.0f, -1.0f,  0.0f))
+    };
+
+    shaderIrradiance->use();
+    glEnable(GL_DEPTH_TEST);
+
+    for (int i = 0; i < 6; ++i)
+    {
+        frameBuffer->bind(irradiance, 0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+i);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        shaderIrradiance->setUniform("viewProj", project*views[i]);
+        shaderIrradiance->bindTexture("environmentMap", cubeMap);
         renderCube();
         frameBuffer->unbind();
     }

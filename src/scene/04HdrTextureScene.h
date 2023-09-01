@@ -24,22 +24,26 @@ private:
     void draw() override;
     void reset() override;
     void drawSettings() override;
+    void drawCubMap(const TextureRef& cubeMap, float scale, bool isCube);
     void createCubMap(const TextureRef& hdr, TextureRef& cubeMap);
+    void createIrradiance(const TextureRef& cubeMap, TextureRef& irradiance);
 
     Camera2DRef camera2d;
 
     TextureRef roomHdr;
     TextureRef roomCubeMap;
+    TextureRef roomIrradiance;
     TextureRef skyHdr;
     TextureRef skyCubeMap;
+    TextureRef skyIrradiance;
     TextureRef textureHdr;
     TextureRef textureCubeMap;
+    TextureRef textureIrradiance;
 
     ShaderRef shaderTexLinear;
     ShaderRef shaderHdrToCubeMap;
     ShaderRef shaderCubMap;
-
-    ShaderRef shader;
+    ShaderRef shaderIrradiance;
 
     math::Vec3 lightColor{};
     math::Vec3 lightDir{};
