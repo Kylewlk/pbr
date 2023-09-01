@@ -7,3 +7,5 @@
 void renderSphere();
 
 void renderCube();
+
+void renderUnfoldCube();

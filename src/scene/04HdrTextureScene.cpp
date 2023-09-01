@@ -20,6 +20,7 @@ HdrTextureScene::HdrTextureScene(int width, int height)
     this->shaderCubMap = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap.frag");
     this->shaderIrradiance = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_irradiance.frag");
     this->shaderSkyBox = Shader::createByPath("asset/shader/sky_box.vert", "asset/shader/sky_box.frag");
+    this->shaderUnfold = Shader::createByPath("asset/shader/cubemap_unfold.vert", "asset/shader/cubemap_unfold.frag");
 
     this->roomHdr = Texture::createHDR("asset/room.hdr");
     this->createCubMap(roomHdr, roomCubeMap);
@@ -97,6 +98,15 @@ void HdrTextureScene::draw()
     {
         drawSkyBox(this->textureIrradiance);
     }
+    else if(drawType == 8)
+    {
+        drawUnfold(this->textureCubeMap);
+    }
+    else if(drawType == 9)
+    {
+        drawUnfold(this->textureIrradiance);
+    }
+
 }
 
 void HdrTextureScene::drawCubMap(const TextureRef& cubeMap, float scale, bool isCube)
@@ -130,6 +140,15 @@ void HdrTextureScene::drawSkyBox(const TextureRef& cubeMap)
     shaderCubMap->setUniform("viewProj", proj*view);
     shaderCubMap->bindTexture("cubeMap", cubeMap);
     renderCube();
+}
+
+void HdrTextureScene::drawUnfold(const TextureRef& cubeMap)
+{
+    shaderUnfold->use();
+    auto mat = camera2d->getViewProj() * math::scale({120, 120, 1.0});
+    shaderUnfold->setUniform("mvp", mat);
+    shaderUnfold->bindTexture("cubeMap", cubeMap);
+    renderUnfoldCube();
 }
 
 void HdrTextureScene::drawSettings()
@@ -169,6 +188,8 @@ void HdrTextureScene::drawSettings()
     changeShowType = ImGui::RadioButton("Sphere Irradiance", &drawType, 5) || changeShowType;
     changeShowType = ImGui::RadioButton("SkyBox Environment", &drawType, 6) || changeShowType;
     changeShowType = ImGui::RadioButton("SkyBox Irradiance", &drawType, 7) || changeShowType;
+    changeShowType = ImGui::RadioButton("Unfold Environment", &drawType, 8) || changeShowType;
+    changeShowType = ImGui::RadioButton("Unfold Irradiance", &drawType, 9) || changeShowType;
     if (changeShowType)
     {
         this->reset();

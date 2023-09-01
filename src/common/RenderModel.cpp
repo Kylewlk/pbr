@@ -171,6 +171,7 @@ void renderCube()
             -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
             -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left
         };
+        cube.vertexCount = 36;
 
         glGenVertexArrays(1, &cube.vao);
         glGenBuffers(1, &cube.vbo);
@@ -199,4 +200,77 @@ void renderCube()
     glBindVertexArray(cube.vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
+}
+
+void renderUnfoldCube()
+{
+    struct Vertex{
+        float x{0}, y{0};
+        float cx{0}, cy{0}, cz{0}; // cube map 对应的位置
+    };
+
+    static ModelData unfoldCube;
+
+    if (unfoldCube.vao == 0)
+    {
+        glGenVertexArrays(1, &unfoldCube.vao);
+
+        glGenBuffers(1, &unfoldCube.vbo);
+        glGenBuffers(1, &unfoldCube.ebo);
+
+        // 参考 /asset/unfold_cube.jpg
+        constexpr Vertex vertices[]{
+            {-1, 0, -1, 1, -1},
+            {0, 0, -1, -1, -1},
+            {0, 1, -1, 1, -1},
+            {1, 1, 1, 1, -1},
+            {1, 0, 1, -1, -1},
+            {2, 0, 1, 1, -1},
+            {3, 0, -1, 1, -1},
+            {3, -1, -1, 1, 1},
+            {2, -1, 1, 1, 1},
+            {1, -1, 1, -1, 1},
+            {1, -2, 1, 1, 1},
+            {0, -2, -1, 1, 1},
+            {0, -1, -1, -1, 1},
+            {-1, -1, -1, 1, 1},
+        };
+        constexpr uint32_t indices[]{
+            0, 13, 12, // 左
+            0, 12, 1,
+            2, 1, 4, // 后
+            2, 4, 3,
+            1, 12, 9, // 下
+            1, 9, 4,
+            12, 11, 10, // 前
+            12, 10, 9,
+            4, 9, 8, // 右
+            4, 8, 5,
+            5, 8, 7, // 上
+            5, 7, 6
+        };
+        unfoldCube.vertexCount = sizeof(indices)/sizeof(uint32_t);
+
+        glBindVertexArray(unfoldCube.vao);
+        glBindBuffer(GL_ARRAY_BUFFER, unfoldCube.vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, unfoldCube.ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        GLsizei stride = sizeof(vertices[0]);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*) offsetof(Vertex, x));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, cx));
+
+        unfoldCube.cleanListener = CustomEventListener::create(CustomEvent::exitSystemEvent);
+        unfoldCube.cleanListener->onCustomEvent = [](const CustomEvent* e) {
+            glDeleteVertexArrays(1, &unfoldCube.vao);
+            glDeleteBuffers(1, &unfoldCube.vbo);
+            glDeleteBuffers(1, &unfoldCube.ebo);
+        };
+        EventSystem::get()->subscribe(unfoldCube.cleanListener);
+    }
+
+    glBindVertexArray(unfoldCube.vao);
+    glDrawElements(GL_TRIANGLES, unfoldCube.vertexCount, GL_UNSIGNED_INT, nullptr);
 }

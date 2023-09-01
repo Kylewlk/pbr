@@ -26,6 +26,7 @@ private:
     void drawSettings() override;
     void drawCubMap(const TextureRef& cubeMap, float scale, bool isCube);
     void drawSkyBox(const TextureRef& cubeMap);
+    void drawUnfold(const TextureRef& cubeMap);
     void createCubMap(const TextureRef& hdr, TextureRef& cubeMap);
     void createIrradiance(const TextureRef& cubeMap, TextureRef& irradiance);
 
@@ -46,6 +47,7 @@ private:
     ShaderRef shaderCubMap;
     ShaderRef shaderIrradiance;
     ShaderRef shaderSkyBox;
+    ShaderRef shaderUnfold;
 
     int hdrType = 0;
     int drawType = 0;
