@@ -25,6 +25,7 @@ private:
     void reset() override;
     void drawSettings() override;
     void drawCubMap(const TextureRef& cubeMap, float scale, bool isCube);
+    void drawSkyBox(const TextureRef& cubeMap);
     void createCubMap(const TextureRef& hdr, TextureRef& cubeMap);
     void createIrradiance(const TextureRef& cubeMap, TextureRef& irradiance);
 
@@ -44,6 +45,7 @@ private:
     ShaderRef shaderHdrToCubeMap;
     ShaderRef shaderCubMap;
     ShaderRef shaderIrradiance;
+    ShaderRef shaderSkyBox;
 
     math::Vec3 lightColor{};
     math::Vec3 lightDir{};

@@ -19,6 +19,7 @@ HdrTextureScene::HdrTextureScene(int width, int height)
     this->shaderHdrToCubeMap = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_from_hdr.frag");
     this->shaderCubMap = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap.frag");
     this->shaderIrradiance = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_irradiance.frag");
+    this->shaderSkyBox = Shader::createByPath("asset/shader/sky_box.vert", "asset/shader/sky_box.frag");
 
     this->roomHdr = Texture::createHDR("asset/room.hdr");
     this->createCubMap(roomHdr, roomCubeMap);
@@ -94,6 +95,14 @@ void HdrTextureScene::draw()
     {
         drawCubMap(this->textureIrradiance, modelScale, drawType == 4);
     }
+    else if(drawType == 6)
+    {
+        drawSkyBox(this->textureCubeMap);
+    }
+    else if(drawType == 7)
+    {
+        drawSkyBox(this->textureIrradiance);
+    }
 }
 
 void HdrTextureScene::drawCubMap(const TextureRef& cubeMap, float scale, bool isCube)
@@ -110,6 +119,18 @@ void HdrTextureScene::drawCubMap(const TextureRef& cubeMap, float scale, bool is
     {
         renderSphere();
     }
+}
+
+void HdrTextureScene::drawSkyBox(const TextureRef& cubeMap)
+{
+    shaderSkyBox->use();
+    glDisable(GL_DEPTH_TEST);
+
+    auto mat = camera->getViewProj();
+    shaderSkyBox->setUniform("projection", camera->getProj());
+    shaderSkyBox->setUniform("view", camera->getView());
+    shaderSkyBox->bindTexture("environmentMap", cubeMap);
+    renderCube();
 }
 
 void HdrTextureScene::drawSettings()
@@ -153,6 +174,8 @@ void HdrTextureScene::drawSettings()
     changeShowType = ImGui::RadioButton("Sphere Environment", &drawType, 3) || changeShowType;
     changeShowType = ImGui::RadioButton("Cube Irradiance", &drawType, 4) || changeShowType;
     changeShowType = ImGui::RadioButton("Sphere Irradiance", &drawType, 5) || changeShowType;
+    changeShowType = ImGui::RadioButton("SkyBox Environment", &drawType, 6) || changeShowType;
+    changeShowType = ImGui::RadioButton("SkyBox Irradiance", &drawType, 7) || changeShowType;
     if (changeShowType)
     {
         this->reset();
