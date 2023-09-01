@@ -167,48 +167,50 @@ void Texture::setSampler(GLint scale /*= GL_LINEAR*/, GLint wrap /*= GL_CLAMP_TO
 
 void Texture::setSampler(GLint minScale, GLint magScale, GLint wrap) const
 {
-    glBindTexture(GL_TEXTURE_2D, this->tex);
+    glBindTexture(target, this->tex);
 
     // GL_LINEAR、GL_NEAREST
     // GL_NEAREST_MIPMAP_NEAREST、 GL_LINEAR_MIPMAP_NEAREST、GL_NEAREST_MIPMAP_LINEAR、GL_LINEAR_MIPMAP_LINEAR
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minScale);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magScale);
+    glTexParameteri(target, GL_TEXTURE_MIN_FILTER, minScale);
+    glTexParameteri(target, GL_TEXTURE_MAG_FILTER, magScale);
 
     // GL_CLAMP_TO_EDGE、GL_CLAMP_TO_BORDER, GL_MIRRORED_REPEAT, GL_REPEAT, GL_MIRROR_CLAMP_TO_EDGE
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+    glTexParameteri(target, GL_TEXTURE_WRAP_S, wrap);
+    glTexParameteri(target, GL_TEXTURE_WRAP_T, wrap);
+    glTexParameteri(target, GL_TEXTURE_WRAP_R, wrap);
 }
 
 void Texture::bind(int unit) const
 {
     glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, tex);
+    glBindTexture(target, tex);
 }
 
-TextureRef Texture::create(GLenum type, GLenum format, int32_t levels, int32_t width, int32_t height, int32_t depth /*=-1*/)
+TextureRef Texture::create(GLenum target, GLenum format, int32_t width, int32_t height, int32_t levels, int32_t depth /*=-1*/)
 {
     GLuint tex = 0;
     glGenTextures(1, &tex);
-    glBindTexture(type, tex);
+    glBindTexture(target, tex);
     if (depth <= 0)
     {
-        glTexStorage2D(type, levels, format, width, height);
+        glTexStorage2D(target, levels, format, width, height);
     }
     else
     {
-        glTexStorage3D(type, levels, format, width, height, depth);
+        glTexStorage3D(target, levels, format, width, height, depth);
     }
 
     if (GL_R8 == format || GL_R16 == format || GL_R16F == format)
     {
         GLint swizzle[]{GL_RED, GL_RED, GL_RED, GL_ONE};
-        glTexParameteriv(type, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+        glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
     }
 
     auto texture = std::make_shared<Texture>();
     texture->tex = tex;
     texture->width = width;
     texture->height = height;
+    texture->target = target;
     texture->format = format;
     texture->setSampler(GL_LINEAR, GL_CLAMP_TO_EDGE);
 
@@ -217,6 +219,8 @@ TextureRef Texture::create(GLenum type, GLenum format, int32_t levels, int32_t w
 
 void Texture::update(int x, int y, int width_, int height_, GLenum format_, GLenum type, void* data)
 {
+    assert(target == GL_TEXTURE_2D);
+
     glBindTexture(GL_TEXTURE_2D, tex);
     if (format != GL_RGBA8)
     {

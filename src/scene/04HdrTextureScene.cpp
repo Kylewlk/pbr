@@ -15,14 +15,16 @@
 HdrTextureScene::HdrTextureScene(int width, int height)
     : Base3DScene(ID, width, height, true)
 {
-    this->roomHdr = Texture::createHDR("asset/room.hdr");
-    this->textureHdr = this->roomHdr;
     this->shaderTexLinear = Shader::createByPath("asset/shader/picture.vert", "asset/shader/picture_linear.frag");
-
-    this->shaderToCubemap  = Shader::createByPath("asset/shader/cubemap.vert",
+    this->shaderHdrToCubeMap = Shader::createByPath("asset/shader/cubemap.vert",
                                                  "asset/shader/cubemap_from_hdr.frag");
-
+    this->shaderCubMap = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap.frag");
     this->shader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
+
+    this->roomHdr = Texture::createHDR("asset/room.hdr");
+    this->createCubMap(roomHdr, roomCubeMap);
+    this->textureHdr = this->roomHdr;
+    this->textureCubeMap = this->roomCubeMap;
 
     this->camera2d = Camera2D::create();
     HdrTextureScene::reset();
@@ -40,7 +42,7 @@ SceneRef HdrTextureScene::create()
 void HdrTextureScene::reset()
 {
     this->camera->resetView();
-    if (drawType == 1) // draw cube
+    if (drawType == 1 || drawType == 2) // draw cube
     {
         this->camera->round(50, 0);
         this->camera->round(0, -50);
@@ -74,38 +76,29 @@ void HdrTextureScene::draw()
         shaderTexLinear->bindTexture(3, this->textureHdr);
         glEnable(GL_MULTISAMPLE);
         drawQuad();
-        return;
     }
-    if (drawType == 1)
+    else if (drawType == 1)
     {
-        shaderToCubemap->use();
+        shaderHdrToCubeMap->use();
         auto mat = camera->getViewProj() * math::scale({modelScale, modelScale, modelScale});
-        shaderToCubemap->setUniform("viewProj", mat);
-        shaderToCubemap->bindTexture("equirectangularMap", this->textureHdr);
-        renderCube();
-        return;
-    }
-
-
-    shader->use();
-    shader->setUniform("viewProj", camera->getViewProj());
-    shader->setUniform("lightColor", lightColor);
-    shader->setUniform("lightDir", glm::normalize(lightDir));
-    shader->setUniform("cameraPos", camera->getViewPosition());
-    shader->setUniform("albedo", sphereColor);
-
-    auto mat = math::scale({modelScale, modelScale, modelScale});
-    auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
-    shader->setUniform("model", mat);
-    shader->setUniform("normalMatrix", normalMat);
-
-    if (drawType == 1)
-    {
+        shaderHdrToCubeMap->setUniform("viewProj", mat);
+        shaderHdrToCubeMap->bindTexture("sphericalMap", this->textureHdr);
         renderCube();
     }
-    else if (drawType == 2)
+    else if (drawType == 2 || drawType == 3)
     {
-        renderSphere();
+        shaderCubMap->use();
+        auto mat = camera->getViewProj() * math::scale({modelScale, modelScale, modelScale});
+        shaderCubMap->setUniform("viewProj", mat);
+        shaderCubMap->bindTexture("cubeMap", this->textureCubeMap);
+        if (drawType == 2)
+        {
+            renderCube();
+        }
+        else
+        {
+            renderSphere();
+        }
     }
 }
 
@@ -122,23 +115,31 @@ void HdrTextureScene::drawSettings()
         if (roomHdr == nullptr)
         {
             this->roomHdr = Texture::createHDR("asset/room.hdr");
+            this->createCubMap(roomHdr, roomCubeMap);
         }
         this->textureHdr = roomHdr;
+        this->textureCubeMap = roomCubeMap;
     }
     if(ImGui::RadioButton("HDR Sky", &hdrType, 1))
     {
         if (skyHdr == nullptr)
         {
             this->skyHdr = Texture::createHDR("asset/sky.hdr");
+            this->createCubMap(skyHdr, skyCubeMap);
         }
         this->textureHdr = skyHdr;
+        this->textureCubeMap = skyCubeMap;
     }
 
     ImGui::Separator();
     bool changeShowType {false};
     changeShowType = ImGui::RadioButton("HDR Texture", &drawType, 0) || changeShowType;
     changeShowType = ImGui::RadioButton("Cube Map", &drawType, 1) || changeShowType;
-    changeShowType = ImGui::RadioButton("Sphere", &drawType, 2) || changeShowType;
+    if(ImGui::RadioButton("Cube Environment", &drawType, 2))
+    {
+        this->reset();
+    }
+    changeShowType = ImGui::RadioButton("Sphere Environment", &drawType, 3) || changeShowType;
     if (changeShowType)
     {
         this->reset();
@@ -163,5 +164,38 @@ void HdrTextureScene::onMouseEvent(const MouseEvent* e)
             delta *= this->camera2d->getViewScale();
             this->camera2d->move({delta.x, -delta.y, 0});
         }
+    }
+}
+
+void HdrTextureScene::createCubMap(const TextureRef& hdr, TextureRef& cubeMap)
+{
+    cubeMap = Texture::createCubemap(GL_RGBA16F, 512, 512);
+
+    FrameBufferRef frameBuffer = FrameBuffer::create(512, 512, RenderTarget::kNone, RenderTarget::kRenderDepth);
+
+    using namespace math;
+
+    // 参考 https://blog.csdn.net/wlk1229/article/details/85077819
+    Mat4 project = math::perspective(glm::radians(90.0f), 1, 0.1, 10.0);
+    Mat4 views[]{
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 1.0f,  0.0f,  0.0f), Vec3(0.0f, -1.0f,  0.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3(-1.0f,  0.0f,  0.0f), Vec3(0.0f, -1.0f,  0.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f,  1.0f,  0.0f), Vec3(0.0f,  0.0f,  1.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f, -1.0f,  0.0f), Vec3(0.0f,  0.0f, -1.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f,  0.0f,  1.0f), Vec3(0.0f, -1.0f,  0.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f,  0.0f, -1.0f), Vec3(0.0f, -1.0f,  0.0f))
+    };
+
+    shaderHdrToCubeMap->use();
+    glEnable(GL_DEPTH_TEST);
+
+    for (int i = 0; i < 6; ++i)
+    {
+        frameBuffer->bind(cubeMap, 0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+i);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        shaderHdrToCubeMap->setUniform("viewProj", project*views[i]);
+        shaderHdrToCubeMap->bindTexture("sphericalMap", hdr);
+        renderCube();
+        frameBuffer->unbind();
     }
 }

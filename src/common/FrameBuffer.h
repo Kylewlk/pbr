@@ -64,8 +64,12 @@ public:
 
     size_t addColorAttachment(GLenum internalFormat);
     size_t addColorAttachment(const RenderTargetRef& target);
+
     void bind() const;
+    /// layer 用于 Cubemap、纹理数组、3D纹理, 用于Cubemap时可以是 GL_TEXTURE_CUBE_MAP_POSITIVE_X、GL_TEXTURE_CUBE_MAP_NEGATIVE_X，...
+    void bind(const TextureRef& texture, int level, int layer = -1);
     void unbind() const;
+
     /// blit to default frame buffer
     void blitFramebuffer(int dstX0, int dstY0, int dstX1, int dstY1) const
     {

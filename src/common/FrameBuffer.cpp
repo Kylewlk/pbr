@@ -188,6 +188,39 @@ void FrameBuffer::bind() const
     glViewport(0, 0, (GLsizei) this->width, (GLsizei) this->height);
     CHECK_GL_ERROR();
 }
+
+void FrameBuffer::bind(const TextureRef& texture, int level, int layer /*= -1*/)
+{
+    assert(this->colorAttachments.empty() && "Color Attachment must be empty!");
+
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &oldFboId);
+    glGetIntegerv(GL_VIEWPORT, this->oldViewport);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, this->handle);
+
+    auto target = texture->getTarget();
+    if (target == GL_TEXTURE_2D)
+    {
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture->getHandle(), level);
+    }
+    else if(target == GL_TEXTURE_CUBE_MAP)
+    {
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, layer, texture->getHandle(), level);
+    }
+    else if(target == GL_TEXTURE_3D)
+    {
+        glFramebufferTexture3D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_3D, texture->getHandle(), level, layer);
+    }
+    else
+    {
+        assert(false && "FrameBuffer::bind, Not support texture type");
+    }
+
+    glViewport(0, 0, (GLsizei) this->width, (GLsizei) this->height);
+    CHECK_GL_ERROR();
+
+}
+
 void FrameBuffer::unbind() const
 {
     if (oldFboId != -1)
@@ -255,6 +288,8 @@ bool FrameBuffer::init(int width_, int height_, RenderTarget::Format colorFormat
 
 bool FrameBuffer::initMultisample(int width_, int height_, GLsizei samples_, RenderTarget::Format colorFormat, bool isNeedDepth)
 {
+    assert(colorFormat != RenderTarget::kNone && "Must add a color attachment!");
+
     this->width = width_;
     this->height = height_;
     this->samples = samples_;

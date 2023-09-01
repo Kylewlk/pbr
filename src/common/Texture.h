@@ -19,14 +19,14 @@ public:
     static TextureRef create(const ByteBuffer& picData, bool premultiply = true);
     static TextureRef createHDR(std::string_view picPath);
 
-    static TextureRef create(GLenum type, GLenum format, int32_t width, int32_t height, int32_t levels, int32_t depth = -1);
+    static TextureRef create(GLenum target, GLenum format, int32_t width, int32_t height, int32_t levels, int32_t depth = -1);
     static TextureRef create(GLenum format, int32_t width, int32_t height, int levels = 1)
     {
-        create(GL_TEXTURE_2D,format, width, height, levels, -1);
+        return create(GL_TEXTURE_2D,format, width, height, levels, -1);
     }
     static TextureRef createCubemap(GLenum format, int32_t width, int32_t height, int levels = 1)
     {
-        create(GL_TEXTURE_CUBE_MAP, format, width, height, levels, -1);
+        return create(GL_TEXTURE_CUBE_MAP, format, width, height, levels, -1);
     }
 
     void update(int x, int y, int width, int height, GLenum format, GLenum type, void* data);
@@ -36,6 +36,7 @@ public:
     [[nodiscard]] int getHeight() const {return this->height; }
     [[nodiscard]] GLenum getFormat() const {return this->format; }
 
+    [[nodiscard]] GLenum getTarget() const { return this->target; }
     [[nodiscard]] GLuint getHandle() const { return this->tex; }
 
     void setSampler(GLint scale = GL_LINEAR, GLint wrap = GL_CLAMP_TO_EDGE) const;
@@ -48,6 +49,7 @@ public:
 protected:
     int width {};
     int height {};
+    GLenum target{GL_TEXTURE_2D};
     GLenum format{GL_RGBA8};
 
     GLuint tex{};

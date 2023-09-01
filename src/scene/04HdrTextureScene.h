@@ -24,14 +24,21 @@ private:
     void draw() override;
     void reset() override;
     void drawSettings() override;
+    void createCubMap(const TextureRef& hdr, TextureRef& cubeMap);
+
+    Camera2DRef camera2d;
+
+    TextureRef roomHdr;
+    TextureRef roomCubeMap;
+    TextureRef skyHdr;
+    TextureRef skyCubeMap;
+    TextureRef textureHdr;
+    TextureRef textureCubeMap;
 
     ShaderRef shaderTexLinear;
-    Camera2DRef camera2d;
-    TextureRef roomHdr;
-    TextureRef skyHdr;
-    TextureRef textureHdr;
+    ShaderRef shaderHdrToCubeMap;
+    ShaderRef shaderCubMap;
 
-    ShaderRef shaderToCubemap;
     ShaderRef shader;
 
     math::Vec3 lightColor{};
