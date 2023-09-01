@@ -10,7 +10,7 @@ void main()
 {
     WorldPos = aPos;
 
-    mat4 rotView = mat4(mat3(view));
+    mat4 rotView = mat4(mat3(view)); // 去掉位移，将摄像机移动到圆点
     vec4 clipPos = projection * rotView * vec4(WorldPos, 1.0);
 
     gl_Position = clipPos.xyww;

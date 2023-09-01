@@ -47,11 +47,6 @@ private:
     ShaderRef shaderIrradiance;
     ShaderRef shaderSkyBox;
 
-    math::Vec3 lightColor{};
-    math::Vec3 lightDir{};
-    math::Vec3 sphereColor{};
-    math::Vec3 cubeColor{};
-
     int hdrType = 0;
     int drawType = 0;
 };

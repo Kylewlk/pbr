@@ -50,12 +50,6 @@ void HdrTextureScene::reset()
         this->camera->round(0, -50);
     }
     this->camera2d->resetView();
-
-    this->lightColor = {0.9, 0.9, 0.9};
-    this->lightDir = {1, 1, 0.3};
-
-    this->sphereColor = math::Vec3{0.3, 0.7, 0.5};
-    this->cubeColor = math::Vec3{0.2, 0.6, 0.8};
 }
 
 void HdrTextureScene::draw()
@@ -123,24 +117,23 @@ void HdrTextureScene::drawCubMap(const TextureRef& cubeMap, float scale, bool is
 
 void HdrTextureScene::drawSkyBox(const TextureRef& cubeMap)
 {
-    shaderSkyBox->use();
-    glDisable(GL_DEPTH_TEST);
+//    shaderSkyBox->use();
+//    glDisable(GL_DEPTH_TEST);
+//    shaderSkyBox->setUniform("projection", camera->getProj());
+//    shaderSkyBox->setUniform("view", camera->getView());
+//    shaderSkyBox->bindTexture("environmentMap", cubeMap);
 
-    auto mat = camera->getViewProj();
-    shaderSkyBox->setUniform("projection", camera->getProj());
-    shaderSkyBox->setUniform("view", camera->getView());
-    shaderSkyBox->bindTexture("environmentMap", cubeMap);
+    auto viewSize = camera->getViewSize();
+    auto proj = math::perspective(camera->getFov(), viewSize.x/viewSize.y, 0.01, 4.0); // 调整near 和 far
+    auto view = math::Mat4{math::Mat3{camera->getView()}}; // 去掉位移，将摄像机移动到圆点
+    shaderCubMap->use();
+    shaderCubMap->setUniform("viewProj", proj*view);
+    shaderCubMap->bindTexture("cubeMap", cubeMap);
     renderCube();
 }
 
 void HdrTextureScene::drawSettings()
 {
-    ImGui::ColorEdit3("Light Color", (float*)&lightColor, ImGuiColorEditFlags_Float);
-    ImGui::DragFloat3("Light Direction", (float*)&lightDir);
-    ImGui::ColorEdit3("Sphere Color", (float*)&sphereColor, ImGuiColorEditFlags_Float);
-    ImGui::ColorEdit3("Cube Color", (float*)&cubeColor, ImGuiColorEditFlags_Float);
-
-    ImGui::Separator();
     if(ImGui::RadioButton("HDR Room", &hdrType, 0))
     {
         if (roomHdr == nullptr)
