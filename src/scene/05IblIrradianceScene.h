@@ -37,6 +37,7 @@ private:
     TextureRef textureHdr;
     TextureRef textureCubeMap;
     TextureRef textureIrradiance;
+    bool enableIbl{true};
 
     ShaderRef shaderModel;
     ShaderRef shaderLight;

@@ -82,7 +82,14 @@ void PbrLightScene::draw()
     pbrShader->setUniform("roughness", roughness);
     pbrShader->setUniform("ao", ao);
 
-    renderSphere();
+    if (this->drawType == 0)
+    {
+        renderSphere();
+    }
+    else
+    {
+        renderCube();
+    }
 
     lightShader->use();
     lightShader->setUniform("viewProj", camera->getViewProj());
@@ -150,4 +157,7 @@ void PbrLightScene::drawSettings()
     ImGui::SliderFloat("metallic", &metallic, 0.0001, 1.0);
     ImGui::SliderFloat("ao", &ao, 0.0, 1.0);
 
+    ImGui::Separator();
+    ImGui::RadioButton("Ball", &drawType, 0);
+    ImGui::RadioButton("Cube", &drawType, 1);
 }

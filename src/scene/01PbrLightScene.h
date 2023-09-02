@@ -36,5 +36,7 @@ private:
     float roughness{0.5};
     float metallic{0.5};
     float ao{1.0};
+
+    int drawType = 0;
 };
 

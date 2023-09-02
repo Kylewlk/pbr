@@ -55,7 +55,6 @@ void IblIrradianceScene::reset()
         this->camera->forward(-700);
     }
 
-
     this->lightPositions[0] = {-500.0f,  500.0f, 500.0f};
     this->lightPositions[1] = { 500.0f,  500.0f, 500.0f};
     this->lightPositions[2] = {-500.0f, -500.0f, 500.0f};
@@ -71,6 +70,8 @@ void IblIrradianceScene::reset()
         this->lightEnables[i] = false;
     }
     lightEnables[1] = true;
+
+    this->enableIbl = true;
 
     this->albedo = {0.4f, 0.7f, 0.6f};
     this->roughness = {0.3};
@@ -105,6 +106,7 @@ void IblIrradianceScene::draw()
     shaderModel->setUniform("lightPositions", lightPositions, lightCount);
     shaderModel->setUniform("lightEnables", lightEnables, lightCount);
     shaderModel->bindTexture("irradianceMap", this->textureIrradiance);
+    shaderModel->setUniform("enableIbl", this->enableIbl);
 
     auto mat = math::scale({50, 50, 50});
     auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
@@ -262,6 +264,7 @@ void IblIrradianceScene::drawSettings()
         this->textureCubeMap = skyCubeMap;
         this->textureIrradiance = skyIrradiance;
     }
+    ImGui::Checkbox("Enable IBL", &this->enableIbl);
 
     ImGui::Separator();
     ImGui::Text("Background");
