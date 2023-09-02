@@ -1,5 +1,8 @@
 #version 430 core
 
+// https://learnopengl-cn.github.io/07%20PBR/03%20IBL/01%20Diffuse%20irradiance/
+// http://www.codinglabs.net/article_physically_based_rendering.aspx
+
 uniform samplerCube environmentMap;
 
 out vec4 FragColor;

@@ -5,7 +5,9 @@
 
 [LearnOpenGL/PBR](https://learnopengl.com/PBR/Theory)
 
-https://github.com/iamyoukou/normalMapping
+[Normal Mapping](https://github.com/iamyoukou/normalMapping)
+
+[Cube Map Irradiance](http://www.codinglabs.net/article_physically_based_rendering.aspx)
 
 [Free PBR Material](https://polyhaven.com/textures)
 

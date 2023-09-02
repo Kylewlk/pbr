@@ -13,5 +13,5 @@ void main()
     mat4 rotView = mat4(mat3(view)); // 去掉位移，将摄像机移动到圆点
     vec4 clipPos = projection * rotView * vec4(WorldPos, 1.0);
 
-    gl_Position = clipPos.xyww;
+    gl_Position = clipPos.xyww; // 将 z 设为 1，防止深度测试遮挡其他绘制
 }
