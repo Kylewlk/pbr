@@ -145,7 +145,7 @@ void HdrTextureScene::drawSkyBox(const TextureRef& cubeMap)
 void HdrTextureScene::drawUnfold(const TextureRef& cubeMap)
 {
     shaderUnfold->use();
-    auto mat = camera2d->getViewProj() * math::scale({120, 120, 1.0});
+    auto mat = camera2d->getViewProj() * math::scale({200, 200, 1.0}) * math::translate({-2, -1.5, 0});
     shaderUnfold->setUniform("mvp", mat);
     shaderUnfold->bindTexture("cubeMap", cubeMap);
     renderUnfoldCube();
