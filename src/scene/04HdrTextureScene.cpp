@@ -53,7 +53,8 @@ SceneRef HdrTextureScene::create()
 void HdrTextureScene::reset()
 {
     this->camera->resetView();
-    if (drawType == 1 || drawType == 2 || drawType == 4 || drawType == kCubePrefilter) // draw cube
+    if (drawType == kCubeEnvironment || drawType == kCubeIrradiance
+        || drawType == kTextureCubeMap || drawType == kCubePrefilter) // draw cube
     {
         this->camera->round(50, 0);
         this->camera->round(0, -50);
@@ -82,7 +83,7 @@ void HdrTextureScene::draw()
 
     float modelScale = 100;
 
-    if (drawType == 0)
+    if (drawType == kTexture)
     {
         shaderTexLinear->use();
         auto mat = camera2d->getViewProj() * math::scale({(float)textureHdr->getWidth() * 0.3f, -(float)textureHdr->getHeight() * 0.3f, 1.0f});
@@ -91,7 +92,7 @@ void HdrTextureScene::draw()
         shaderTexLinear->bindTexture(3, this->textureHdr);
         drawQuad();
     }
-    else if (drawType == 1)
+    else if (drawType == kTextureCubeMap)
     {
         shaderHdrToCubeMap->use();
         auto mat = camera->getViewProj() * math::scale({modelScale, modelScale, modelScale});
@@ -99,30 +100,36 @@ void HdrTextureScene::draw()
         shaderHdrToCubeMap->bindTexture("sphericalMap", this->textureHdr);
         renderCube();
     }
-    else if (drawType == 2 || drawType == 3)
+
+    // Environment
+    else if (drawType == kCubeEnvironment || drawType == kSphereEnvironment)
     {
-        drawCubMap(this->textureCubeMap, modelScale, drawType == 2);
+        drawCubMap(this->textureCubeMap, modelScale, drawType == kCubeEnvironment);
     }
-    else if(drawType == 4 || drawType == 5)
-    {
-        drawCubMap(this->textureIrradiance, modelScale, drawType == 4);
-    }
-    else if(drawType == 6)
+    else if(drawType == kSkyBoxEnvironment)
     {
         drawSkyBox(this->textureCubeMap);
     }
-    else if(drawType == 7)
-    {
-        drawSkyBox(this->textureIrradiance);
-    }
-    else if(drawType == 8)
+    else if(drawType == kUnfoldEnvironment)
     {
         drawUnfold(this->textureCubeMap);
     }
-    else if(drawType == 9)
+
+    // Irradiance
+    else if(drawType == kCubeIrradiance || drawType == kSphereIrradiance)
+    {
+        drawCubMap(this->textureIrradiance, modelScale, drawType == kCubeIrradiance);
+    }
+    else if(drawType == kSkyBoxIrradiance)
+    {
+        drawSkyBox(this->textureIrradiance);
+    }
+    else if(drawType == kUnfoldIrradiance)
     {
         drawUnfold(this->textureIrradiance);
     }
+
+    // Prefilter
     else if(drawType == kCubePrefilter || drawType == kSpherePrefilter)
     {
         drawCubMap(this->texturePrefilter, modelScale, drawType == kCubePrefilter, (float)this->drawPrefilterLevel);
@@ -147,6 +154,7 @@ void HdrTextureScene::draw()
         shaderUnfoldLod->setUniform("lod", (float)this->drawPrefilterLevel);
         renderUnfoldCube();
     }
+
     else if (drawType == kBrdfLUT)
     {
         shaderTexLinear->use();
@@ -243,17 +251,22 @@ void HdrTextureScene::drawSettings()
     ImGui::Checkbox("Enable Cube Map Sampless", &this->enableCubeMapSampless);
     ImGui::Separator();
     bool changeShowType {false};
-    changeShowType = ImGui::RadioButton("HDR Texture", &drawType, 0) || changeShowType;
-    changeShowType = ImGui::RadioButton("Cube Map", &drawType, 1) || changeShowType;
-    changeShowType = ImGui::RadioButton("Cube Environment", &drawType, 2) || changeShowType;
-    changeShowType = ImGui::RadioButton("Sphere Environment", &drawType, 3) || changeShowType;
-    changeShowType = ImGui::RadioButton("Cube Irradiance", &drawType, 4) || changeShowType;
-    changeShowType = ImGui::RadioButton("Sphere Irradiance", &drawType, 5) || changeShowType;
-    changeShowType = ImGui::RadioButton("SkyBox Environment", &drawType, 6) || changeShowType;
-    changeShowType = ImGui::RadioButton("SkyBox Irradiance", &drawType, 7) || changeShowType;
-    changeShowType = ImGui::RadioButton("Unfold Environment", &drawType, 8) || changeShowType;
-    changeShowType = ImGui::RadioButton("Unfold Irradiance", &drawType, 9) || changeShowType;
+    changeShowType = ImGui::RadioButton("HDR Texture", &drawType, kTexture) || changeShowType;
+    changeShowType = ImGui::RadioButton("Cube Map", &drawType, kTextureCubeMap) || changeShowType;
     ImGui::Separator();
+
+    changeShowType = ImGui::RadioButton("Cube Environment", &drawType, kCubeEnvironment) || changeShowType;
+    changeShowType = ImGui::RadioButton("Sphere Environment", &drawType, kSphereEnvironment) || changeShowType;
+    changeShowType = ImGui::RadioButton("SkyBox Environment", &drawType, kSkyBoxEnvironment) || changeShowType;
+    changeShowType = ImGui::RadioButton("Unfold Environment", &drawType, kUnfoldEnvironment) || changeShowType;
+    ImGui::Separator();
+
+    changeShowType = ImGui::RadioButton("Cube Irradiance", &drawType, kCubeIrradiance) || changeShowType;
+    changeShowType = ImGui::RadioButton("Sphere Irradiance", &drawType, kSphereIrradiance) || changeShowType;
+    changeShowType = ImGui::RadioButton("SkyBox Irradiance", &drawType, kSkyBoxIrradiance) || changeShowType;
+    changeShowType = ImGui::RadioButton("Unfold Irradiance", &drawType, kUnfoldIrradiance) || changeShowType;
+    ImGui::Separator();
+
     changeShowType = ImGui::RadioButton("Cube Prefilter", &drawType, kCubePrefilter) || changeShowType;
     changeShowType = ImGui::RadioButton("Sphere Prefilter", &drawType, kSpherePrefilter) || changeShowType;
     changeShowType = ImGui::RadioButton("SkyBox Prefilter", &drawType, kSkyBoxPrefilter) || changeShowType;
