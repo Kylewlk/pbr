@@ -56,6 +56,9 @@ private:
 
     TextureRef brdfLUT;
 
+    bool enableIblDiffuse{true};
+    bool enableIblSpecular{true};
+
     ShaderRef shaderIBL;
     ShaderRef shaderLight;
     ShaderRef shaderHdrToCubeMap;

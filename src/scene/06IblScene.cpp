@@ -76,7 +76,8 @@ void IblScene::reset()
     }
     lightEnables[1] = true;
 
-//    this->enableIbl = true;
+    this->enableIblDiffuse = true;
+    this->enableIblSpecular = true;
 
     this->albedo = {0.4f, 0.7f, 0.6f};
     this->roughness = {0.3};
@@ -116,7 +117,8 @@ void IblScene::draw()
     shaderIBL->bindTexture("irradianceMap", this->textureIrradiance);
     shaderIBL->bindTexture("prefilterMap", this->texturePrefilter);
     shaderIBL->bindTexture("brdfLUT", this->brdfLUT);
-//    shaderIBL->setUniform("enableIbl", this->enableIbl);
+    shaderIBL->setUniform("enableIblDiffuse", this->enableIblDiffuse);
+    shaderIBL->setUniform("enableIblSpecular", this->enableIblSpecular);
 
     auto mat = math::scale({50, 50, 50});
     auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
@@ -284,8 +286,8 @@ void IblScene::drawSettings()
         this->textureIrradiance = skyIrradiance;
         this->texturePrefilter = this->skyPrefilter;
     }
-//    ImGui::Checkbox("Enable IBL", &this->enableIbl);
-//    ImGui::Checkbox("Enable IBL", &this->enableIbl);
+    ImGui::Checkbox("Enable Diffuse", &this->enableIblDiffuse);
+    ImGui::Checkbox("Enable Specular", &this->enableIblSpecular);
 
     ImGui::Separator();
     ImGui::Text("Background");
