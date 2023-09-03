@@ -19,6 +19,7 @@ public:
     static TextureRef create(const ByteBuffer& picData, bool premultiply = true);
     static TextureRef createHDR(std::string_view picPath);
 
+    // levels < 0 , 会自动计算level
     static TextureRef create(GLenum target, GLenum format, int32_t width, int32_t height, int32_t levels, int32_t depth = -1);
     static TextureRef create(GLenum format, int32_t width, int32_t height, int levels = 1)
     {
@@ -27,6 +28,10 @@ public:
     static TextureRef createCubemap(GLenum format, int32_t width, int32_t height, int levels = 1)
     {
         return create(GL_TEXTURE_CUBE_MAP, format, width, height, levels, -1);
+    }
+    static int32_t getLevels(int32_t width, int32_t height)
+    {
+        return int32_t(std::log(float(std::max(width, height))) / std::log(2.0f)) + 1;
     }
 
     void update(int x, int y, int width, int height, GLenum format, GLenum type, void* data);

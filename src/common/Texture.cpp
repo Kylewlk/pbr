@@ -188,6 +188,11 @@ void Texture::bind(int unit) const
 
 TextureRef Texture::create(GLenum target, GLenum format, int32_t width, int32_t height, int32_t levels, int32_t depth /*=-1*/)
 {
+    if (levels < 1)
+    {
+        levels = getLevels(width, height);
+    }
+
     GLuint tex = 0;
     glGenTextures(1, &tex);
     glBindTexture(target, tex);
