@@ -2,7 +2,7 @@
 // Created by wlk12 on 2023/8/6.
 //
 
-#include "05IblIrradianceScene.h"
+#include "06IblScene.h"
 #include "common/Texture.h"
 #include "common/Shader.h"
 #include "common/FrameBuffer.h"
@@ -12,37 +12,42 @@
 #include "common/Logger.h"
 #include "common/RenderModel.h"
 
-IblIrradianceScene::IblIrradianceScene(int width, int height)
+IblScene::IblScene(int width, int height)
     : Base3DScene(ID, width, height, true)
 {
-    this->shaderModel = Shader::createByPath("asset/shader/model.vert", "asset/shader/05ibl_irradiance.frag");
+    this->shaderIBL = Shader::createByPath("asset/shader/model.vert", "asset/shader/06ibl.frag");
     this->shaderLight = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
 
-    this->shaderHdrToCubeMap = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_from_hdr.frag");
     this->shaderSkyBox = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap.frag");
+    this->shaderHdrToCubeMap = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_from_hdr.frag");
     this->shaderIrradiance = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_irradiance.frag");
+    this->shaderPrefilter = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_prefilter.frag");
+    this->shaderBrdf = Shader::createByPath("asset/shader/brdf.vert", "asset/shader/brdf.frag");
 
     this->roomHdr = Texture::createHDR("asset/room.hdr");
     this->createCubMap(roomHdr, roomCubeMap);
     this->createIrradiance(this->roomCubeMap, this->roomIrradiance);
-
+    this->createPrefilter(this->roomCubeMap, this->roomPrefilter);
     this->textureHdr = this->roomHdr;
     this->textureCubeMap = this->roomCubeMap;
-    this->textureIrradiance = roomIrradiance;
+    this->textureIrradiance = this->roomIrradiance;
+    this->texturePrefilter = this->roomPrefilter;
 
-    IblIrradianceScene::reset();
+    this->createBrdfLut();
+
+    IblScene::reset();
 }
 
-SceneRef IblIrradianceScene::create()
+SceneRef IblScene::create()
 {
-    struct enable_make_shared : public IblIrradianceScene
+    struct enable_make_shared : public IblScene
     {
-        enable_make_shared() : IblIrradianceScene(0, 0) {}
+        enable_make_shared() : IblScene(0, 0) {}
     };
     return std::make_shared<enable_make_shared>();
 }
 
-void IblIrradianceScene::reset()
+void IblScene::reset()
 {
     this->camera->resetView();
     if (drawType == 1) // draw cube
@@ -71,20 +76,23 @@ void IblIrradianceScene::reset()
     }
     lightEnables[1] = true;
 
-    this->enableIbl = true;
+//    this->enableIbl = true;
 
     this->albedo = {0.4f, 0.7f, 0.6f};
     this->roughness = {0.3};
     this->metallic = {0.2};
     this->ao = {1.0};
+
+
 }
 
-void IblIrradianceScene::draw()
+void IblScene::draw()
 {
     this->camera->setViewSize((float)this->width, (float)this->height);
     this->camera->update();
 
     glEnable(GL_MULTISAMPLE);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     // 绘制天空盒子，需要关闭深度缓存写入
     glDisable(GL_DEPTH_TEST);
@@ -99,24 +107,26 @@ void IblIrradianceScene::draw()
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
-    shaderModel->use();
-    shaderModel->setUniform("viewProj", camera->getViewProj());
-    shaderModel->setUniform("camPos", camera->getViewPosition());
-    shaderModel->setUniform("lightColors", lightColors, lightCount);
-    shaderModel->setUniform("lightPositions", lightPositions, lightCount);
-    shaderModel->setUniform("lightEnables", lightEnables, lightCount);
-    shaderModel->bindTexture("irradianceMap", this->textureIrradiance);
-    shaderModel->setUniform("enableIbl", this->enableIbl);
+    shaderIBL->use();
+    shaderIBL->setUniform("viewProj", camera->getViewProj());
+    shaderIBL->setUniform("camPos", camera->getViewPosition());
+    shaderIBL->setUniform("lightColors", lightColors, lightCount);
+    shaderIBL->setUniform("lightPositions", lightPositions, lightCount);
+    shaderIBL->setUniform("lightEnables", lightEnables, lightCount);
+    shaderIBL->bindTexture("irradianceMap", this->textureIrradiance);
+    shaderIBL->bindTexture("prefilterMap", this->texturePrefilter);
+    shaderIBL->bindTexture("brdfLUT", this->brdfLUT);
+//    shaderIBL->setUniform("enableIbl", this->enableIbl);
 
     auto mat = math::scale({50, 50, 50});
     auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
-    shaderModel->setUniform("model", mat);
-    shaderModel->setUniform("normalMatrix", normalMat);
+    shaderIBL->setUniform("model", mat);
+    shaderIBL->setUniform("normalMatrix", normalMat);
 
-    shaderModel->setUniform("albedo", albedo);
-    shaderModel->setUniform("metallic", metallic);
-    shaderModel->setUniform("roughness", roughness);
-    shaderModel->setUniform("ao", ao);
+    shaderIBL->setUniform("albedo", albedo);
+    shaderIBL->setUniform("metallic", metallic);
+    shaderIBL->setUniform("roughness", roughness);
+    shaderIBL->setUniform("ao", ao);
 
     if (drawType == 0)
     {
@@ -135,13 +145,13 @@ void IblIrradianceScene::draw()
 
         for (int i = 0; i < rows; ++i)
         {
-            shaderModel->setUniform("metallic", (float)i / (float)rows);
+            shaderIBL->setUniform("metallic", (float)i / (float)rows);
             for (int j = 0; j < columns; ++j)
             {
-                shaderModel->setUniform("roughness", ((float)j / (float)columns) * 0.95f + 0.05f);
+                shaderIBL->setUniform("roughness", ((float)j / (float)columns) * 0.95f + 0.05f);
                 model = math::translate(glm::vec3((float(j) - (columns / 2.0f)) * spacing,
                                                   (float(i) - (rows / 2.0f)) * spacing, 0.0f)) * mat;
-                shaderModel->setUniform("model", model);
+                shaderIBL->setUniform("model", model);
                 renderSphere();
             }
         }
@@ -170,10 +180,17 @@ void IblIrradianceScene::draw()
         shaderLight->setUniform("normalMatrix", normalMat);
         renderSphere();
     }
+
 }
 
-void IblIrradianceScene::drawSkyBox(const TextureRef& cubeMap)
+void IblScene::drawSkyBox(const TextureRef& cubeMap)
 {
+    //    shaderSkyBox->use();
+    //    glDisable(GL_DEPTH_TEST);
+    //    shaderSkyBox->setUniform("projection", camera->getProj());
+    //    shaderSkyBox->setUniform("view", camera->getView());
+    //    shaderSkyBox->bindTexture("environmentMap", cubeMap);
+
     auto viewSize = camera->getViewSize();
     auto proj = math::perspective(camera->getFov(), viewSize.x/viewSize.y, 0.01, 4.0); // 调整near 和 far
     auto view = math::Mat4{math::Mat3{camera->getView()}}; // 去掉位移，将摄像机移动到圆点
@@ -183,7 +200,7 @@ void IblIrradianceScene::drawSkyBox(const TextureRef& cubeMap)
     renderCube();
 }
 
-void IblIrradianceScene::drawSettings()
+void IblScene::drawSettings()
 {
     if(ImGui::CollapsingHeader("Lights"))
     {
@@ -239,7 +256,6 @@ void IblIrradianceScene::drawSettings()
     }
 
     ImGui::Separator();
-
     if(ImGui::RadioButton("HDR Room", &hdrType, 0))
     {
         if (roomHdr == nullptr)
@@ -247,10 +263,12 @@ void IblIrradianceScene::drawSettings()
             this->roomHdr = Texture::createHDR("asset/room.hdr");
             this->createCubMap(roomHdr, roomCubeMap);
             this->createIrradiance(roomCubeMap, roomIrradiance);
+            this->createPrefilter(roomCubeMap, roomPrefilter);
         }
         this->textureHdr = roomHdr;
         this->textureCubeMap = roomCubeMap;
         this->textureIrradiance = roomIrradiance;
+        this->texturePrefilter = this->roomPrefilter;
     }
     if(ImGui::RadioButton("HDR Sky", &hdrType, 1))
     {
@@ -259,12 +277,15 @@ void IblIrradianceScene::drawSettings()
             this->skyHdr = Texture::createHDR("asset/sky.hdr");
             this->createCubMap(skyHdr, skyCubeMap);
             this->createIrradiance(skyCubeMap, skyIrradiance);
+            this->createPrefilter(skyCubeMap, skyPrefilter);
         }
         this->textureHdr = skyHdr;
         this->textureCubeMap = skyCubeMap;
         this->textureIrradiance = skyIrradiance;
+        this->texturePrefilter = this->skyPrefilter;
     }
-    ImGui::Checkbox("Enable IBL", &this->enableIbl);
+//    ImGui::Checkbox("Enable IBL", &this->enableIbl);
+//    ImGui::Checkbox("Enable IBL", &this->enableIbl);
 
     ImGui::Separator();
     ImGui::Text("Background");
@@ -283,11 +304,13 @@ void IblIrradianceScene::drawSettings()
     }
 }
 
-void IblIrradianceScene::createCubMap(const TextureRef& hdr, TextureRef& cubeMap)
-{
-    cubeMap = Texture::createCubemap(GL_RGBA16F, 512, 512);
 
-    FrameBufferRef frameBuffer = FrameBuffer::create(512, 512, RenderTarget::kNone, RenderTarget::kRenderDepth);
+void IblScene::createCubMap(const TextureRef& hdr, TextureRef& cubeMap)
+{
+    const int mapSize = 512;
+    cubeMap = Texture::createCubemap(GL_RGBA16F, mapSize, mapSize, -1);
+
+    FrameBufferRef frameBuffer = FrameBuffer::create(mapSize, mapSize, RenderTarget::kNone, RenderTarget::kRenderDepth);
 
     using namespace math;
 
@@ -302,25 +325,29 @@ void IblIrradianceScene::createCubMap(const TextureRef& hdr, TextureRef& cubeMap
         lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f,  0.0f, -1.0f), Vec3(0.0f, -1.0f,  0.0f))
     };
 
-    shaderHdrToCubeMap->use();
     glEnable(GL_DEPTH_TEST);
+    shaderHdrToCubeMap->use();
+    shaderHdrToCubeMap->bindTexture("sphericalMap", hdr);
 
     for (int i = 0; i < 6; ++i)
     {
         frameBuffer->bind(cubeMap, 0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+i);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaderHdrToCubeMap->setUniform("viewProj", project*views[i]);
-        shaderHdrToCubeMap->bindTexture("sphericalMap", hdr);
         renderCube();
         frameBuffer->unbind();
     }
+
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+    cubeMap->setSampler(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE);
 }
 
-void IblIrradianceScene::createIrradiance(const TextureRef& cubeMap, TextureRef& irradiance)
+void IblScene::createIrradiance(const TextureRef& cubeMap, TextureRef& irradiance)
 {
-    irradiance = Texture::createCubemap(GL_RGBA16F, 64, 64);
+    const int mapSize = 64;
+    irradiance = Texture::createCubemap(GL_RGBA16F, mapSize, mapSize);
 
-    FrameBufferRef frameBuffer = FrameBuffer::create(64, 64, RenderTarget::kNone, RenderTarget::kRenderDepth);
+    FrameBufferRef frameBuffer = FrameBuffer::create(mapSize, mapSize, RenderTarget::kNone, RenderTarget::kRenderDepth);
 
     using namespace math;
 
@@ -335,8 +362,8 @@ void IblIrradianceScene::createIrradiance(const TextureRef& cubeMap, TextureRef&
         lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f,  0.0f, -1.0f), Vec3(0.0f, -1.0f,  0.0f))
     };
 
-    shaderIrradiance->use();
     glEnable(GL_DEPTH_TEST);
+    shaderIrradiance->use();
 
     for (int i = 0; i < 6; ++i)
     {
@@ -348,3 +375,58 @@ void IblIrradianceScene::createIrradiance(const TextureRef& cubeMap, TextureRef&
         frameBuffer->unbind();
     }
 }
+
+void IblScene::createPrefilter(const TextureRef& cubeMap, TextureRef& prefilter)
+{
+    const int mapSize = 128;
+    prefilter = Texture::createCubemap(GL_RGBA16F, mapSize, mapSize, prefilterLevels);
+    FrameBufferRef frameBuffer = FrameBuffer::create(mapSize, mapSize, RenderTarget::kNone, RenderTarget::kRenderDepth);
+
+    using namespace math;
+    // 参考 https://blog.csdn.net/wlk1229/article/details/85077819
+    Mat4 project = math::perspective(glm::radians(90.0f), 1, 0.1, 10.0);
+    Mat4 views[]{
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 1.0f,  0.0f,  0.0f), Vec3(0.0f, -1.0f,  0.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3(-1.0f,  0.0f,  0.0f), Vec3(0.0f, -1.0f,  0.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f,  1.0f,  0.0f), Vec3(0.0f,  0.0f,  1.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f, -1.0f,  0.0f), Vec3(0.0f,  0.0f, -1.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f,  0.0f,  1.0f), Vec3(0.0f, -1.0f,  0.0f)),
+        lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3( 0.0f,  0.0f, -1.0f), Vec3(0.0f, -1.0f,  0.0f))
+    };
+
+    // cube map 两个面连接处，可以使用两个面的纹理数据插值采样
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    glEnable(GL_DEPTH_TEST);
+    shaderPrefilter->use();
+    shaderPrefilter->bindTexture("environmentMap", cubeMap);
+
+    for (int mip = 0; mip < prefilterLevels; ++mip)
+    {
+        float roughness = (float)mip / (float)(prefilterLevels - 1);
+        shaderPrefilter->setUniform("roughness", roughness);
+        for (int i = 0; i < 6; ++i)
+        {
+            frameBuffer->bind(prefilter, mip, GL_TEXTURE_CUBE_MAP_POSITIVE_X+i);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            shaderPrefilter->setUniform("viewProj", project*views[i]);
+            renderCube();
+            frameBuffer->unbind();
+        }
+    }
+    prefilter->setSampler(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE);
+}
+
+void IblScene::createBrdfLut()
+{
+    constexpr int lutSize = 512;
+    this->brdfLUT = Texture::create(GL_RG16F, lutSize, lutSize);
+    FrameBufferRef frameBuffer = FrameBuffer::create(lutSize, lutSize, RenderTarget::kNone, RenderTarget::kNone);
+
+    frameBuffer->bind(brdfLUT, 0);
+    shaderBrdf->use();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    drawQuad();
+    frameBuffer->unbind();
+
+}
+

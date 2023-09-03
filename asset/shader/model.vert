@@ -15,7 +15,7 @@ void main()
 {
     TexCoords = aTexCoords;
     WorldPos = vec3(model * vec4(aPos, 1.0));
-    Normal = aNormal;
+    Normal = normalize(normalMatrix*aNormal);
 
     gl_Position =  viewProj * vec4(WorldPos, 1.0);
 }

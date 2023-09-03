@@ -5,60 +5,39 @@
 
 #include "Base3DScene.h"
 
-class HdrTextureScene : public Base3DScene
+class IblScene : public Base3DScene
 {
 public:
-    static constexpr const char* ID = "HDR Texture";
+    static constexpr const char* ID = "IBL Scene";
 
     static SceneRef create();
 
-    ~HdrTextureScene() override = default;
-    HdrTextureScene(const HdrTextureScene&) = delete;
-    HdrTextureScene& operator=(HdrTextureScene&) = delete;
+    ~IblScene() override = default;
+    IblScene(const IblScene&) = delete;
+    IblScene& operator=(IblScene&) = delete;
 
 private:
     enum DrawType
     {
-        kTexture,
-        kTextureCubeMap,
-
-        kCubeEnvironment,
-        kSphereEnvironment,
-        kSkyBoxEnvironment,
-        kUnfoldEnvironment,
-
-        kCubeIrradiance,
-        kSphereIrradiance,
-        kSkyBoxIrradiance,
-        kUnfoldIrradiance,
-
-        kCubePrefilter,
-        kSpherePrefilter,
-        kSkyBoxPrefilter,
-        kUnfoldPrefilter,
-
-        kBrdfLUT
+        kCube,
+        kSphere,
+        kSphereGroup,
     };
 
 
-    HdrTextureScene(int width, int height);
-
-    void onMouseEvent(const MouseEvent* e) override;
+    IblScene(int width, int height);
 
     void draw() override;
     void reset() override;
     void drawSettings() override;
-    void drawCubMap(const TextureRef& cubeMap, float scale, bool isCube, float lod = -1.0f);
     void drawSkyBox(const TextureRef& cubeMap);
-    void drawUnfold(const TextureRef& cubeMap);
     void createCubMap(const TextureRef& hdr, TextureRef& cubeMap);
     void createIrradiance(const TextureRef& cubeMap, TextureRef& irradiance);
     void createPrefilter(const TextureRef& cubeMap, TextureRef& prefilter);
     void createBrdfLut();
 
+    static constexpr int lightCount = 8;
     static const int prefilterLevels = 5;
-
-    Camera2DRef camera2d;
 
     TextureRef roomHdr;
     TextureRef roomCubeMap;
@@ -77,20 +56,25 @@ private:
 
     TextureRef brdfLUT;
 
-    ShaderRef shaderTexLinear;
+    ShaderRef shaderIBL;
+    ShaderRef shaderLight;
     ShaderRef shaderHdrToCubeMap;
-    ShaderRef shaderCubMap;
-    ShaderRef shaderCubMapLod;
     ShaderRef shaderIrradiance;
     ShaderRef shaderPrefilter;
     ShaderRef shaderBrdf;
     ShaderRef shaderSkyBox;
-    ShaderRef shaderUnfold;
-    ShaderRef shaderUnfoldLod;
+
+    math::Vec3 lightColors[lightCount]{};
+    math::Vec3 lightPositions[lightCount]{};
+    bool lightEnables[lightCount]{false};
+
+    math::Vec3 albedo{0.5f, 0.0f, 0.0f};
+    float roughness{0.5};
+    float metallic{0.5};
+    float ao{1.0};
 
     int hdrType = 0;
     int drawType = 0;
-    int drawPrefilterLevel{0};
-    bool enableCubeMapSampless{true};
+    int backgroundType = 0;
 };
 

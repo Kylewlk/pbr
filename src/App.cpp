@@ -18,6 +18,7 @@
 #include "scene/03PbrTextureScene.h"
 #include "scene/04HdrTextureScene.h"
 #include "scene/05IblIrradianceScene.h"
+#include "scene/06IblScene.h"
 
 #define ADD_SCENE_MENU(scene) {scene::ID, &scene::create}
 
@@ -29,6 +30,7 @@ AppMenu mainMenus[]{
     ADD_SCENE_MENU(PbrTextureScene),
     ADD_SCENE_MENU(HdrTextureScene),
     ADD_SCENE_MENU(IblIrradianceScene),
+    ADD_SCENE_MENU(IblScene),
 
 };
 int mainMenuCount = sizeof(mainMenus)/(sizeof (mainMenus[0]));
@@ -295,6 +297,7 @@ void App::resetOpenGLStates()
     glDisable(GL_CULL_FACE);
     glDisable(GL_PROGRAM_POINT_SIZE);
     glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);// cube map 两个面连接处，可以使用两个面的纹理数据插值采样
     glCullFace(GL_BACK);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
