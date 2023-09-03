@@ -192,6 +192,12 @@ void FrameBuffer::bind() const
 void FrameBuffer::bind(const TextureRef& texture, int level, int layer /*= -1*/)
 {
     assert(this->colorAttachments.empty() && "Color Attachment must be empty!");
+    auto vpWidth = (int32_t )((float)texture->getWidth() / std::pow(2.0f, (float)level));
+    auto vpHeight = (int32_t )((float)texture->getHeight() / std::pow(2.0f, (float)level));
+    if (this->depth != nullptr)
+    {
+        assert((int32_t)this->depth->getWidth() == vpWidth && (int32_t)this->depth->getHeight() == vpHeight);
+    }
 
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &oldFboId);
     glGetIntegerv(GL_VIEWPORT, this->oldViewport);
@@ -216,7 +222,7 @@ void FrameBuffer::bind(const TextureRef& texture, int level, int layer /*= -1*/)
         assert(false && "FrameBuffer::bind, Not support texture type");
     }
 
-    glViewport(0, 0, (GLsizei) this->width, (GLsizei) this->height);
+    glViewport(0, 0, vpWidth, vpHeight);
     CHECK_GL_ERROR();
 
 }

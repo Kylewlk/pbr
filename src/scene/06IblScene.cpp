@@ -310,7 +310,7 @@ void IblScene::createCubMap(const TextureRef& hdr, TextureRef& cubeMap)
     const int mapSize = 512;
     cubeMap = Texture::createCubemap(GL_RGBA16F, mapSize, mapSize, -1);
 
-    FrameBufferRef frameBuffer = FrameBuffer::create(mapSize, mapSize, RenderTarget::kNone, RenderTarget::kRenderDepth);
+    FrameBufferRef frameBuffer = FrameBuffer::create(mapSize, mapSize, RenderTarget::kNone, RenderTarget::kNone);
 
     using namespace math;
 
@@ -347,7 +347,7 @@ void IblScene::createIrradiance(const TextureRef& cubeMap, TextureRef& irradianc
     const int mapSize = 64;
     irradiance = Texture::createCubemap(GL_RGBA16F, mapSize, mapSize);
 
-    FrameBufferRef frameBuffer = FrameBuffer::create(mapSize, mapSize, RenderTarget::kNone, RenderTarget::kRenderDepth);
+    FrameBufferRef frameBuffer = FrameBuffer::create(mapSize, mapSize, RenderTarget::kNone, RenderTarget::kNone);
 
     using namespace math;
 
@@ -380,7 +380,7 @@ void IblScene::createPrefilter(const TextureRef& cubeMap, TextureRef& prefilter)
 {
     const int mapSize = 128;
     prefilter = Texture::createCubemap(GL_RGBA16F, mapSize, mapSize, prefilterLevels);
-    FrameBufferRef frameBuffer = FrameBuffer::create(mapSize, mapSize, RenderTarget::kNone, RenderTarget::kRenderDepth);
+    FrameBufferRef frameBuffer = FrameBuffer::create(mapSize, mapSize, RenderTarget::kNone, RenderTarget::kNone);
 
     using namespace math;
     // 参考 https://blog.csdn.net/wlk1229/article/details/85077819
