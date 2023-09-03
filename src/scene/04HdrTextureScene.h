@@ -54,6 +54,7 @@ private:
     void createCubMap(const TextureRef& hdr, TextureRef& cubeMap);
     void createIrradiance(const TextureRef& cubeMap, TextureRef& irradiance);
     void createPrefilter(const TextureRef& cubeMap, TextureRef& prefilter);
+    void createBrdfLut();
 
     Camera2DRef camera2d;
 

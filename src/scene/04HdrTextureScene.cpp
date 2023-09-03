@@ -24,6 +24,7 @@ HdrTextureScene::HdrTextureScene(int width, int height)
     this->shaderSkyBox = Shader::createByPath("asset/shader/sky_box.vert", "asset/shader/sky_box.frag");
     this->shaderUnfold = Shader::createByPath("asset/shader/cubemap_unfold.vert", "asset/shader/cubemap_unfold.frag");
     this->shaderUnfoldLod = Shader::createByPath("asset/shader/cubemap_unfold.vert", "asset/shader/cubemap_unfold_lod.frag");
+    this->shaderBrdf = Shader::createByPath("asset/shader/brdf.vert", "asset/shader/brdf.frag");
 
     this->roomHdr = Texture::createHDR("asset/room.hdr");
     this->createCubMap(roomHdr, roomCubeMap);
@@ -33,6 +34,8 @@ HdrTextureScene::HdrTextureScene(int width, int height)
     this->textureCubeMap = this->roomCubeMap;
     this->textureIrradiance = this->roomIrradiance;
     this->texturePrefilter = this->roomPrefilter;
+
+    this->createBrdfLut();
 
     this->camera2d = Camera2D::create();
     HdrTextureScene::reset();
@@ -86,7 +89,6 @@ void HdrTextureScene::draw()
         glUniformMatrix4fv(1, 1, false, (float*)&mat);
         glUniform4f(2, 1, 1, 1, 1);
         shaderTexLinear->bindTexture(3, this->textureHdr);
-        glEnable(GL_MULTISAMPLE);
         drawQuad();
     }
     else if (drawType == 1)
@@ -144,6 +146,16 @@ void HdrTextureScene::draw()
         shaderUnfoldLod->bindTexture("cubeMap", texturePrefilter);
         shaderUnfoldLod->setUniform("lod", (float)this->drawPrefilterLevel);
         renderUnfoldCube();
+    }
+    else if (drawType == kBrdfLUT)
+    {
+        shaderTexLinear->use();
+        auto mat = camera2d->getViewProj()
+                   * math::scale({(float)brdfLUT->getWidth() * 0.5f , (float)brdfLUT->getHeight() * 0.5f, 1.0f});
+        glUniformMatrix4fv(1, 1, false, (float*)&mat);
+        glUniform4f(2, 1, 1, 1, 1);
+        shaderTexLinear->bindTexture(3, this->brdfLUT);
+        drawQuad();
     }
 
 }
@@ -252,6 +264,9 @@ void HdrTextureScene::drawSettings()
         ImGui::SameLine(0, 5);
         ImGui::RadioButton(std::to_string(i).c_str(), &drawPrefilterLevel, i);
     }
+
+    ImGui::Separator();
+    changeShowType = ImGui::RadioButton("BRDF LUT", &drawType, kBrdfLUT) || changeShowType;
 
     if (changeShowType)
     {
@@ -389,4 +404,18 @@ void HdrTextureScene::createPrefilter(const TextureRef& cubeMap, TextureRef& pre
         }
     }
     prefilter->setSampler(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE);
+}
+
+void HdrTextureScene::createBrdfLut()
+{
+    constexpr int lutSize = 512;
+    this->brdfLUT = Texture::create(GL_RG16F, lutSize, lutSize);
+    FrameBufferRef frameBuffer = FrameBuffer::create(lutSize, lutSize, RenderTarget::kNone, RenderTarget::kNone);
+
+    frameBuffer->bind(brdfLUT, 0);
+    shaderBrdf->use();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    drawQuad();
+    frameBuffer->unbind();
+
 }
