@@ -79,6 +79,8 @@ using FrameBufferRef = std::shared_ptr<FrameBuffer>;
 class Shader;
 using ShaderRef = std::shared_ptr<Shader>;
 
+class Model;
+using ModelRef = std::shared_ptr<Model>;
 
 class Scene;
 using SceneRef = std::shared_ptr<Scene>;

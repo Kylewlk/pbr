@@ -20,6 +20,7 @@
 #include "scene/05IblIrradianceScene.h"
 #include "scene/06IblScene.h"
 #include "scene/07IblTextureScene.h"
+#include "scene/08PbrModelScene.h"
 
 #define ADD_SCENE_MENU(scene) {scene::ID, &scene::create}
 
@@ -33,6 +34,7 @@ AppMenu mainMenus[]{
     ADD_SCENE_MENU(IblIrradianceScene),
     ADD_SCENE_MENU(IblScene),
     ADD_SCENE_MENU(IblTextureScene),
+    ADD_SCENE_MENU(PbrModelScene),
 
 };
 int mainMenuCount = sizeof(mainMenus)/(sizeof (mainMenus[0]));
