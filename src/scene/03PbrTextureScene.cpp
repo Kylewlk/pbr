@@ -17,7 +17,7 @@ PbrTextureScene::PbrTextureScene(int width, int height)
     this->pbrShader = Shader::createByPath("asset/shader/model.vert", "asset/shader/03pbr_light_texture.frag");
     this->lightShader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
 
-    this->materialWall.load("asset/material/wall/");
+    this->loadMaterial(this->materialIndex);
 
     PbrTextureScene::reset();
 }
@@ -71,21 +71,9 @@ void PbrTextureScene::draw()
 
     auto mat = math::scale({50, 50, 50});
     auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
-
     pbrShader->setUniform("normalMatrix", normalMat);
 
-    if (materialIndex == 0)
-    {
-        materialWall.use(pbrShader);
-    }
-    else if(materialIndex == 1)
-    {
-        materialRusted.use(pbrShader);
-    }
-    else
-    {
-        materialGold.use(pbrShader);
-    }
+    this->materials[materialIndex].use(pbrShader);
 
     pbrShader->setUniform("model", math::translate({-80, 0, 0}) * mat);
     renderSphere();
@@ -160,21 +148,11 @@ void PbrTextureScene::drawSettings()
         lightEnables[1] = true;
     }
     ImGui::Separator();
-    ImGui::RadioButton("Wall", &materialIndex, 0);
-
-    if (ImGui::RadioButton("Rusted", &materialIndex, 1))
+    for (int i = 0; i < kMaterialCount; ++i)
     {
-        if (this->materialRusted.albedo == nullptr)
+        if (ImGui::RadioButton(materialNames[i].data() , reinterpret_cast<int*>(&materialIndex), i))
         {
-            this->materialRusted.load("asset/material/rusted_iron/");
-        }
-    }
-
-    if (ImGui::RadioButton("Gold", &materialIndex, 2))
-    {
-        if (this->materialGold.albedo == nullptr)
-        {
-            this->materialGold.load("asset/material/gold/");
+            this->loadMaterial((MaterialType)i);
         }
     }
 }

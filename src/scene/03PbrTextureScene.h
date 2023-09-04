@@ -20,6 +20,40 @@ public:
 private:
     PbrTextureScene(int width, int height);
 
+    enum MaterialType : int
+    {
+        kWall = 0,
+        kRusted,
+        kGold,
+        kGrass,
+        kPlastic,
+
+        kMaterialCount
+    };
+    static constexpr std::string_view materialNames[kMaterialCount]{
+        "Wall",
+        "Rusted",
+        "Gold",
+        "Grass",
+        "Plastic"
+    };
+
+    static constexpr std::string_view materialPaths[kMaterialCount]{
+        "asset/material/wall/",
+        "asset/material/rusted_iron/",
+        "asset/material/gold/",
+        "asset/material/grass/",
+        "asset/material/plastic/"
+    };
+
+    void loadMaterial(MaterialType type)
+    {
+        if (materials[type].albedo == nullptr)
+        {
+            this->materials[type].load(materialPaths[type]);
+        }
+    }
+
     void draw() override;
     void reset() override;
     void drawSettings() override;
@@ -34,9 +68,7 @@ private:
     bool lightEnables[lightCount]{false};
     float lightIntensity{200};
 
-    int materialIndex{0};
-    PbrMaterial materialWall;
-    PbrMaterial materialGold;
-    PbrMaterial materialRusted;
+    MaterialType materialIndex{kWall};
+    PbrMaterial materials[kMaterialCount];
 };
 
