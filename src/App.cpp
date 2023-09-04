@@ -19,6 +19,7 @@
 #include "scene/04HdrTextureScene.h"
 #include "scene/05IblIrradianceScene.h"
 #include "scene/06IblScene.h"
+#include "scene/07IblTextureScene.h"
 
 #define ADD_SCENE_MENU(scene) {scene::ID, &scene::create}
 
@@ -31,6 +32,7 @@ AppMenu mainMenus[]{
     ADD_SCENE_MENU(HdrTextureScene),
     ADD_SCENE_MENU(IblIrradianceScene),
     ADD_SCENE_MENU(IblScene),
+    ADD_SCENE_MENU(IblTextureScene),
 
 };
 int mainMenuCount = sizeof(mainMenus)/(sizeof (mainMenus[0]));
@@ -43,9 +45,9 @@ int mainMenuCount = sizeof(mainMenus)/(sizeof (mainMenus[0]));
 void App::run()
 {
     auto win = GLWindow::get();
-    win->init(winWidth, winHeight, "Ray Tracing");
+    win->init(winWidth, winHeight, "PBR");
 
-    std::string titleFormat = "Ray Tracing, Graphic-FPS: ";
+    std::string titleFormat = "PBR, Graphic-FPS: ";
     std::string title;
     int32_t frameCount = 0;
     int32_t fps = 0;

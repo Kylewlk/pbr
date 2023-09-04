@@ -17,7 +17,7 @@ PbrTextureScene::PbrTextureScene(int width, int height)
     this->pbrShader = Shader::createByPath("asset/shader/model.vert", "asset/shader/03pbr_light_texture.frag");
     this->lightShader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
 
-    this->loadMaterial(this->materialIndex);
+    this->loadMaterial(this->materialType);
 
     PbrTextureScene::reset();
 }
@@ -45,7 +45,7 @@ void PbrTextureScene::reset()
     this->lightPositions[6] = {-500.0f, -500.0f, -500.0f};
     this->lightPositions[7] = { 500.0f, -500.0f, -500.0f};
 
-    this->lightIntensity = 200;
+    this->lightIntensity = 300;
     for (int i = 0; i < lightCount; ++i)
     {
         this->lightColors[i] = { lightIntensity, lightIntensity, lightIntensity};
@@ -73,7 +73,7 @@ void PbrTextureScene::draw()
     auto normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
     pbrShader->setUniform("normalMatrix", normalMat);
 
-    this->materials[materialIndex].use(pbrShader);
+    this->materials[materialType].use(pbrShader);
 
     pbrShader->setUniform("model", math::translate({-80, 0, 0}) * mat);
     renderSphere();
@@ -86,23 +86,18 @@ void PbrTextureScene::draw()
     lightShader->setUniform("lightColor", math::Vec3 {0.5, 0.5, 0.5});
     lightShader->setUniform("lightDir", glm::normalize(math::Vec3{1, 1, 0.5}));
     lightShader->setUniform("cameraPos", camera->getViewPosition());
+    lightShader->setUniform("albedo", math::Vec3{1, 1, 1});
 
     for (int i = 0; i < lightCount; ++i)
     {
         if (lightEnables[i])
         {
-            lightShader->setUniform("albedo", math::Vec3{1, 1, 1});
+            mat = math::translate(lightPositions[i]) * math::scale({10, 10, 10});
+            normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
+            lightShader->setUniform("model", mat);
+            lightShader->setUniform("normalMatrix", normalMat);
+            renderSphere();
         }
-        else
-        {
-            lightShader->setUniform("albedo", math::Vec3{0.1, 0.3, 0.2});
-        }
-
-        mat = math::translate(lightPositions[i]) * math::scale({10, 10, 10});
-        normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
-        lightShader->setUniform("model", mat);
-        lightShader->setUniform("normalMatrix", normalMat);
-        renderSphere();
     }
 }
 
@@ -150,7 +145,7 @@ void PbrTextureScene::drawSettings()
     ImGui::Separator();
     for (int i = 0; i < kMaterialCount; ++i)
     {
-        if (ImGui::RadioButton(materialNames[i].data() , reinterpret_cast<int*>(&materialIndex), i))
+        if (ImGui::RadioButton(materialNames[i].data() , reinterpret_cast<int*>(&materialType), i))
         {
             this->loadMaterial((MaterialType)i);
         }

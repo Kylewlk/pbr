@@ -66,9 +66,9 @@ private:
     math::Vec3 lightColors[lightCount]{};
     math::Vec3 lightPositions[lightCount]{};
     bool lightEnables[lightCount]{false};
-    float lightIntensity{200};
+    float lightIntensity{300};
 
-    MaterialType materialIndex{kWall};
+    MaterialType materialType{kWall};
     PbrMaterial materials[kMaterialCount];
 };
 
