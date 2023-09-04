@@ -72,7 +72,7 @@ void PbrModelScene::reset()
         this->lightColors[i] = { lightIntensity, lightIntensity, lightIntensity};
         this->lightEnables[i] = false;
     }
-    lightEnables[1] = true;
+    lightEnables[4] = true;
 
     this->enableIblDiffuse = true;
     this->enableIblSpecular = true;

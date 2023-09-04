@@ -17,21 +17,29 @@ Texture::~Texture()
 
 TextureRef Texture::create(const std::string& picPath, bool premultiply /*= true*/)
 {
-    return create(readFile(picPath), false, premultiply);
+    return create(readFile(picPath), false, false, premultiply);
 }
 
-TextureRef Texture::createWithMipmap(const std::string& picPath, bool premultiply)
+TextureRef Texture::createWithMipmap(const std::string& picPath, bool flipY, bool premultiply)
 {
-    return create(readFile(picPath), true, premultiply);
+    return create(readFile(picPath), flipY, true, premultiply);
 }
 
-TextureRef Texture::create(const ByteBuffer& picData, bool genMipmap, bool premultiply)
+TextureRef Texture::create(const ByteBuffer& picData, bool flipY, bool genMipmap, bool premultiply)
 {
     int width;
     int height;
     int channels_in_file;
+    if (flipY)
+    {
+        stbi_set_flip_vertically_on_load(flipY);
+    }
     uint8_t* imageData = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(picData.data()), (int) picData.size(),
                                                &width, &height, &channels_in_file, STBI_default);
+    if (flipY)
+    {
+        stbi_set_flip_vertically_on_load(false);
+    }
     if (imageData == nullptr)
     {
         return {};
