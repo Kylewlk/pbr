@@ -152,23 +152,17 @@ void IblIrradianceScene::draw()
     shaderLight->setUniform("lightColor", math::Vec3 {0.5, 0.5, 0.5});
     shaderLight->setUniform("lightDir", glm::normalize(math::Vec3{1, 1, 0.5}));
     shaderLight->setUniform("cameraPos", camera->getViewPosition());
-
+    shaderLight->setUniform("albedo", math::Vec3{1, 1, 1});
     for (int i = 0; i < lightCount; ++i)
     {
         if (lightEnables[i])
         {
-            shaderLight->setUniform("albedo", math::Vec3{1, 1, 1});
+            mat = math::translate(lightPositions[i]) * math::scale({10, 10, 10});
+            normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
+            shaderLight->setUniform("model", mat);
+            shaderLight->setUniform("normalMatrix", normalMat);
+            renderSphere();
         }
-        else
-        {
-            shaderLight->setUniform("albedo", math::Vec3{0.1, 0.3, 0.2});
-        }
-
-        mat = math::translate(lightPositions[i]) * math::scale({10, 10, 10});
-        normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
-        shaderLight->setUniform("model", mat);
-        shaderLight->setUniform("normalMatrix", normalMat);
-        renderSphere();
     }
 }
 

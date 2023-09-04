@@ -30,7 +30,7 @@ private:
     void draw() override;
     void reset() override;
     void drawSettings() override;
-    void drawSkyBox(const TextureRef& cubeMap);
+    void drawSkyBox(const TextureRef& cubeMap, int lod = -1);
     void createCubMap(const TextureRef& hdr, TextureRef& cubeMap);
     void createIrradiance(const TextureRef& cubeMap, TextureRef& irradiance);
     void createPrefilter(const TextureRef& cubeMap, TextureRef& prefilter);
@@ -66,6 +66,7 @@ private:
     ShaderRef shaderPrefilter;
     ShaderRef shaderBrdf;
     ShaderRef shaderSkyBox;
+    ShaderRef shaderSkyBoxLod;
 
     math::Vec3 lightColors[lightCount]{};
     math::Vec3 lightPositions[lightCount]{};
@@ -79,5 +80,6 @@ private:
     int hdrType = 0;
     int drawType = 0;
     int backgroundType = 0;
+    int backgroundPrefilterLod{0};
 };
 

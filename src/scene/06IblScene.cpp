@@ -19,6 +19,7 @@ IblScene::IblScene(int width, int height)
     this->shaderLight = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
 
     this->shaderSkyBox = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap.frag");
+    this->shaderSkyBoxLod = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_lod.frag");
     this->shaderHdrToCubeMap = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_from_hdr.frag");
     this->shaderIrradiance = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_irradiance.frag");
     this->shaderPrefilter = Shader::createByPath("asset/shader/cubemap.vert", "asset/shader/cubemap_prefilter.frag");
@@ -83,8 +84,6 @@ void IblScene::reset()
     this->roughness = {0.3};
     this->metallic = {0.2};
     this->ao = {1.0};
-
-
 }
 
 void IblScene::draw()
@@ -104,6 +103,10 @@ void IblScene::draw()
     else if(backgroundType == 1)
     {
         drawSkyBox(this->textureIrradiance);
+    }
+    else if(backgroundType == 2)
+    {
+        drawSkyBox(this->texturePrefilter, this->backgroundPrefilterLod);
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -164,41 +167,35 @@ void IblScene::draw()
     shaderLight->setUniform("lightColor", math::Vec3 {0.5, 0.5, 0.5});
     shaderLight->setUniform("lightDir", glm::normalize(math::Vec3{1, 1, 0.5}));
     shaderLight->setUniform("cameraPos", camera->getViewPosition());
-
+    shaderLight->setUniform("albedo", math::Vec3{1, 1, 1});
     for (int i = 0; i < lightCount; ++i)
     {
         if (lightEnables[i])
         {
-            shaderLight->setUniform("albedo", math::Vec3{1, 1, 1});
+            mat = math::translate(lightPositions[i]) * math::scale({10, 10, 10});
+            normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
+            shaderLight->setUniform("model", mat);
+            shaderLight->setUniform("normalMatrix", normalMat);
+            renderSphere();
         }
-        else
-        {
-            shaderLight->setUniform("albedo", math::Vec3{0.1, 0.3, 0.2});
-        }
-
-        mat = math::translate(lightPositions[i]) * math::scale({10, 10, 10});
-        normalMat = glm::transpose(glm::inverse(math::Mat3{mat}));
-        shaderLight->setUniform("model", mat);
-        shaderLight->setUniform("normalMatrix", normalMat);
-        renderSphere();
     }
 
 }
 
-void IblScene::drawSkyBox(const TextureRef& cubeMap)
+void IblScene::drawSkyBox(const TextureRef& cubeMap, int lod /*= -1*/)
 {
-    //    shaderSkyBox->use();
-    //    glDisable(GL_DEPTH_TEST);
-    //    shaderSkyBox->setUniform("projection", camera->getProj());
-    //    shaderSkyBox->setUniform("view", camera->getView());
-    //    shaderSkyBox->bindTexture("environmentMap", cubeMap);
+    auto shader = (lod <= -1) ? shaderSkyBox : shaderSkyBoxLod;
 
     auto viewSize = camera->getViewSize();
     auto proj = math::perspective(camera->getFov(), viewSize.x/viewSize.y, 0.01, 4.0); // 调整near 和 far
     auto view = math::Mat4{math::Mat3{camera->getView()}}; // 去掉位移，将摄像机移动到圆点
-    shaderSkyBox->use();
-    shaderSkyBox->setUniform("viewProj", proj*view);
-    shaderSkyBox->bindTexture("cubeMap", cubeMap);
+    shader->use();
+    shader->setUniform("viewProj", proj*view);
+    shader->bindTexture("cubeMap", cubeMap);
+    if (lod >= 0)
+    {
+        shader->setUniform("lod", (float)lod);
+    }
     renderCube();
 }
 
@@ -293,7 +290,20 @@ void IblScene::drawSettings()
     ImGui::Text("Background");
     ImGui::RadioButton("Environment", &backgroundType, 0);
     ImGui::RadioButton("Irradiance", &backgroundType, 1);
-    ImGui::RadioButton("None", &backgroundType, 2);
+    ImGui::RadioButton("Prefilter", &backgroundType, 2);
+    if (backgroundType == 2)
+    {
+        ImGui::Text("Prefilter Lod:");
+        for (int i = 0; i < prefilterLevels; ++i)
+        {
+            ImGui::SameLine(0, 5);
+            ImGui::RadioButton(std::to_string(i).c_str(), &backgroundPrefilterLod, i);
+        }
+    }
+
+    ImGui::RadioButton("None", &backgroundType, 3);
+
+
 
     ImGui::Separator();
     bool changeShowType {false};
