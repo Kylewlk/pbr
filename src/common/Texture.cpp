@@ -17,10 +17,15 @@ Texture::~Texture()
 
 TextureRef Texture::create(const std::string& picPath, bool premultiply /*= true*/)
 {
-    return create(readFile(picPath), premultiply);
+    return create(readFile(picPath), false, premultiply);
 }
 
-TextureRef Texture::create(const ByteBuffer& picData, bool premultiply /*= true*/)
+TextureRef Texture::createWithMipmap(const std::string& picPath, bool premultiply)
+{
+    return create(readFile(picPath), true, premultiply);
+}
+
+TextureRef Texture::create(const ByteBuffer& picData, bool genMipmap, bool premultiply)
 {
     int width;
     int height;
@@ -59,16 +64,26 @@ TextureRef Texture::create(const ByteBuffer& picData, bool premultiply /*= true*
     default:
         break;
     }
+    int32_t levels = 1;
+    if (genMipmap)
+    {
+        levels = getLevels(width, height);
+    }
 
     GLuint tex = 0;
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
-    glTexStorage2D(GL_TEXTURE_2D, 1, inFormat, width, height);
+    glTexStorage2D(GL_TEXTURE_2D, levels, inFormat, width, height);
     if (inFormat != GL_RGBA8)
     {
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     }
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, extFormat, GL_UNSIGNED_BYTE, imageData);
+
+    if (genMipmap)
+    {
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
 
     if (GL_R8 == inFormat)
     {
@@ -88,7 +103,14 @@ TextureRef Texture::create(const ByteBuffer& picData, bool premultiply /*= true*
     texture->width = width;
     texture->height = height;
     texture->format = inFormat;
-    texture->setSampler(GL_LINEAR, GL_CLAMP_TO_EDGE);
+    if (genMipmap)
+    {
+        texture->setSampler(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE);
+    }
+    else
+    {
+        texture->setSampler(GL_LINEAR, GL_CLAMP_TO_EDGE);
+    }
 
     return texture;
 }

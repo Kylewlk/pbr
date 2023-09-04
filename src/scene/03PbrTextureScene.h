@@ -35,8 +35,8 @@ private:
     float lightIntensity{200};
 
     int materialIndex{0};
+    PbrMaterial materialWall;
     PbrMaterial materialGold;
     PbrMaterial materialRusted;
-    PbrMaterial materialWall;
 };
 

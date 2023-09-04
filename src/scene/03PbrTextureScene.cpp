@@ -17,7 +17,7 @@ PbrTextureScene::PbrTextureScene(int width, int height)
     this->pbrShader = Shader::createByPath("asset/shader/model.vert", "asset/shader/03pbr_light_texture.frag");
     this->lightShader = Shader::createByPath("asset/shader/model.vert", "asset/shader/model.frag");
 
-    this->materialGold.load("asset/material/gold/");
+    this->materialWall.load("asset/material/wall/");
 
     PbrTextureScene::reset();
 }
@@ -49,9 +49,8 @@ void PbrTextureScene::reset()
     for (int i = 0; i < lightCount; ++i)
     {
         this->lightColors[i] = { lightIntensity, lightIntensity, lightIntensity};
-        this->lightEnables[i] = false;
+        this->lightEnables[i] = true;
     }
-    lightEnables[1] = true;
 }
 
 void PbrTextureScene::draw()
@@ -75,7 +74,7 @@ void PbrTextureScene::draw()
 
     pbrShader->setUniform("normalMatrix", normalMat);
 
-    if (materialIndex == 2)
+    if (materialIndex == 0)
     {
         materialWall.use(pbrShader);
     }
@@ -161,7 +160,7 @@ void PbrTextureScene::drawSettings()
         lightEnables[1] = true;
     }
     ImGui::Separator();
-    ImGui::RadioButton("Gold", &materialIndex, 0);
+    ImGui::RadioButton("Wall", &materialIndex, 0);
 
     if (ImGui::RadioButton("Rusted", &materialIndex, 1))
     {
@@ -171,11 +170,11 @@ void PbrTextureScene::drawSettings()
         }
     }
 
-    if (ImGui::RadioButton("Wall", &materialIndex, 2))
+    if (ImGui::RadioButton("Gold", &materialIndex, 2))
     {
-        if (this->materialWall.albedo == nullptr)
+        if (this->materialGold.albedo == nullptr)
         {
-            this->materialWall.load("asset/material/wall/");
+            this->materialGold.load("asset/material/gold/");
         }
     }
 }

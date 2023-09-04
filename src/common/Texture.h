@@ -16,7 +16,8 @@ public:
     Texture& operator=(const Texture&) = delete;
 
     static TextureRef create(const std::string& picPath, bool premultiply = true);
-    static TextureRef create(const ByteBuffer& picData, bool premultiply = true);
+    static TextureRef createWithMipmap(const std::string& picPath, bool premultiply);
+    static TextureRef create(const ByteBuffer& picData, bool genMipmap, bool premultiply);
     static TextureRef createHDR(std::string_view picPath);
 
     // levels < 0 , 会自动计算level

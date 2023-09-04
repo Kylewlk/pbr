@@ -13,27 +13,27 @@ void PbrMaterial::load(std::string_view path, std::string_view extension)
     file = path;
     file += "albedo";
     file += extension;
-    this->albedo = Texture::create(file, false);
+    this->albedo = Texture::createWithMipmap(file, false);
 
     file = path;
     file += "normal";
     file += extension;
-    this->normal = Texture::create(file, false);
+    this->normal = Texture::createWithMipmap(file, false);
 
     file = path;
     file += "metallic";
     file += extension;
-    this->metallic = Texture::create(file, false);
+    this->metallic = Texture::createWithMipmap(file, false);
 
     file = path;
     file += "roughness";
     file += extension;
-    this->roughness = Texture::create(file, false);
+    this->roughness = Texture::createWithMipmap(file, false);
 
     file = path;
     file += "ao";
     file += extension;
-    this->ao = Texture::create(file, false);
+    this->ao = Texture::createWithMipmap(file, false);
 }
 
 void PbrMaterial::use(const ShaderRef& shader) const
