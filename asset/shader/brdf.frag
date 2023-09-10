@@ -76,7 +76,7 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
     // pdf = D * NoH / (4 * VoH)
 
     // importance sampling brdf_specular
-    // brdf_specular = brdf_specular * NOL/pdf = (F*G*VoH/(NoH*NoL*NoV))*NoL = F*G*VoH/(NoH*NoV)
+    // brdf_specular = specular * NOL/pdf = (F*G*VoH/(NoH*NoL*NoV))*NoL = F*G*VoH/(NoH*NoV)
 
     vec3 V;
     V.x = sqrt(1.0 - NdotV*NdotV);

@@ -315,7 +315,7 @@ void IblTextureScene::createCubMap(const TextureRef& hdr, TextureRef& cubeMap)
 
 void IblTextureScene::createIrradiance(const TextureRef& cubeMap, TextureRef& irradiance)
 {
-    const int mapSize = 64;
+    const int mapSize = 32;
     irradiance = Texture::createCubemap(GL_RGBA16F, mapSize, mapSize);
 
     FrameBufferRef frameBuffer = FrameBuffer::create(mapSize, mapSize, RenderTarget::kNone, RenderTarget::kNone);

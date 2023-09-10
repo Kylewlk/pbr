@@ -23,6 +23,7 @@ void main()
     vec3 irradiance = vec3(0.0);
 
     // tangent space calculation from origin point
+    // irradiance 的分辨率很低一般只有32*32，顶面的中心像素不会等于(0.0, 1.0, 0.0)
     vec3 up    = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, N));
     up         = normalize(cross(N, right));
@@ -42,6 +43,7 @@ void main()
             nrSamples++;
         }
     }
+    // irradiance = 2*pi * 0.5*pi / pi * irradiance , 2*pi对应phi, 0.5*pi对应theata , pi BRDF diffuse 中除以pi
     irradiance = PI * irradiance * (1.0 / float(nrSamples));
 
     FragColor = vec4(irradiance, 1.0);
