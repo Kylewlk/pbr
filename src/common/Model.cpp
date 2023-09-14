@@ -87,6 +87,14 @@ ModelRef Model::create(std::string_view filePath)
                 if (idx.texcoord_index >= 0) {
                     tinyobj::real_t tx = attrib.texcoords[2*size_t(idx.texcoord_index)+0];
                     tinyobj::real_t ty = attrib.texcoords[2*size_t(idx.texcoord_index)+1];
+                    if (tx > 1.0 || tx < 0.0)
+                    {
+                        tx = glm::mod(tx, 1.0f);
+                    }
+                    if (ty > 1.0 || ty < 0.0)
+                    {
+                        ty = glm::mod(ty, 1.0f);
+                    }
                     model->vertices.texCoords.emplace_back(tx, ty);
                 }
             }
