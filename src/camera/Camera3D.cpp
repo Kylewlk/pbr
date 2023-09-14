@@ -8,7 +8,7 @@
 Camera3D::Camera3D()
 {
     const float height = GLWindow::get()->getHeight();
-    const float defaultFov = 60.0f;
+    const float defaultFov = 45.0f;
     const float zPosition = height * 0.5f / std::tan(glm::radians(defaultFov) * 0.5f);
     this->perspective(defaultFov, GLWindow::get()->getWidth(), height, 1.0f, 10000.0f);
     this->lookAt({0, 0, zPosition}, {0, 0, 0});
@@ -60,8 +60,7 @@ void Camera3D::resetView(const math::Vec3& center)
 void Camera3D::resetView()
 {
     const float height = GLWindow::get()->getHeight();
-    const float defaultFov = 60.0f;
-    const float zPosition = height * 0.5f / std::tan(glm::radians(defaultFov) * 0.5f);
+    const float zPosition = height * 0.5f / std::tan(this->fov * 0.5f);
     this->lookAt({0, 0, zPosition}, {0, 0, 0});
 }
 
