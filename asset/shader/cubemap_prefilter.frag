@@ -90,7 +90,7 @@ void main()
             float HdotV = max(dot(H, V), 0.0);
 
             // 参考 https://schuttejoe.github.io/post/ggximportancesamplingpart2/
-            float pdf = D * NdotH / (4.0 * HdotV) + 0.0001; 
+            float pdf = D * NdotH / (4.0 * HdotV + 0.0001);
 
             float resolution = 512.0; // resolution of source cubemap (per face)
             float saTexel  = 4.0 * PI / (6.0 * resolution * resolution);
