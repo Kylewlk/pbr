@@ -83,19 +83,18 @@ void Scene::render()
 
     this->fbResolved->bind();
     this->toneMappingShader->use();
-
     if (this->multisample)
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, fbDraw->getColor()->getHandle());
         glUniform1i(0, 0);
-
-        glUniform1i(1, (GLint)multisampleCount);
+        this->toneMappingShader->setUniform("sampleCount", multisampleCount);
     }
     else
     {
         this->toneMappingShader->bindTexture(0, this->fbDraw->getColor());
     }
+    this->toneMappingShader->setUniform("exposure", toneMappingExposure);
     drawQuad();
     this->fbResolved->unbind();
 

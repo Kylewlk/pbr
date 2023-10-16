@@ -39,6 +39,7 @@ void Base3DScene::drawProperty()
             auto workingDir = std::filesystem::current_path().u8string();
             LOGI("Save to picture: {}/{}", (const char*)workingDir.data(), ".data/picture-scene.png");
         }
+        ImGui::SliderFloat("Exposure", &toneMappingExposure, 0.01f, 4.0f);
 
         ImGui::Separator();
 

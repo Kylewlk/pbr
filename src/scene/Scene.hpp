@@ -52,6 +52,7 @@ protected:
     FrameBufferRef fbDraw; // multi-sample
     FrameBufferRef fbResolved;
     ShaderRef toneMappingShader;
+    float toneMappingExposure{1.0f};
 
     MouseListenerRef mouseListener;
     KeyListenerRef keyListener;

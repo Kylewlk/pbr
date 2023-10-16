@@ -1,6 +1,7 @@
 #version 430 core
 
 layout(location = 0) uniform sampler2D tex;
+layout(location = 1) uniform float exposure; // 曝光
 in vec2 vTexCoord;
 
 out vec4 fragColor;
@@ -19,6 +20,7 @@ vec3 Uncharted2Tonemap(highp vec3 x)
 void main()
 {
     vec3 color = texture(tex, vTexCoord).rgb;
+    color *= exposure;
 
     // tone mapping
     color = Uncharted2Tonemap(color * 4.5f);

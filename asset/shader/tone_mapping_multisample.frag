@@ -2,6 +2,7 @@
 
 layout(location = 0) uniform sampler2DMS tex;
 layout(location= 1) uniform int sampleCount;
+layout(location= 2) uniform float exposure; // 曝光
 
 in vec2 vTexCoord;
 
@@ -28,7 +29,7 @@ void main()
     {
         color += texelFetch(tex, coord, i).rgb;
     }
-    color /= float(sampleCount);
+    color *= (exposure / float(sampleCount));
 
     // tone mapping
     color = Uncharted2Tonemap(color * 4.5f);
