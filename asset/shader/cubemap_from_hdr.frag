@@ -11,9 +11,10 @@ in vec3 LocalPos;
 
 uniform sampler2D sphericalMap;
 
-// 0.1591 = 1 /(2 * pi) = 0.5 / 3.1415926
-// 0.3183 = 1/pi = 1/ 3.1415926
-const vec2 invAtan = vec2(0.1591, 0.3183);
+const float pi = 3.1415926;
+const vec2 invAtan = vec2(1.0/(2.0 * pi), 1.0/pi);
+// 1/(2 * pi) = 0.1591
+// 1/pi = 0.3183
 
 // x轴
 // sphericalMap 将宽设为 2*pi ，然后映射到[0, 1]之间
@@ -35,7 +36,8 @@ vec2 SampleSphericalMap(vec3 v)
 void main()
 {		
     vec2 uv = SampleSphericalMap(normalize(LocalPos));
+//    vec3 color = textureLod(sphericalMap, uv, 0.0).rgb; // 不能使用mipmap,否则拼接处容易出现不同的lod, 导致有一条线
     vec3 color = texture(sphericalMap, uv).rgb;
-    
+
     FragColor = vec4(color, 1.0);
 }
